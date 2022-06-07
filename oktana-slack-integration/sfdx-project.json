@@ -1,0 +1,19 @@
+{
+    "packageDirectories": [
+        {
+            "path": "force-app",
+            "package": "Oktana Slack Integration",
+            "versionName": "ver 0.1",
+            "versionNumber": "0.1.0.NEXT",
+            "default": true
+        }
+    ],
+    "name": "oktana-slack-integration",
+    "namespace": "oktana_slack",
+    "sfdcLoginUrl": "https://login.salesforce.com",
+    "sourceApiVersion": "54.0",
+    "packageAliases": {
+        "Oktana Slack Integration": "0Ho8c000000wkDICAY",
+        "Oktana Slack Integration@0.1.0-1": "04t8c000001NZADAA4"
+    }
+}
