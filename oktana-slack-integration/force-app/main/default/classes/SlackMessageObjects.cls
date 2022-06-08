@@ -10,7 +10,8 @@ public with sharing class SlackMessageObjects {
     public class FullConversation{
         public String conversationId;
         public List<SlackMessage> messages;
-        public List<String> members; 
+        public List<String> members;
+        public List<Debug_Log__c> errorLogs;
     }
 
     public class SlackUser{
@@ -20,7 +21,12 @@ public with sharing class SlackMessageObjects {
     }
 
     public class UserConversationPair{
-        //public String userToken;
+        public String userToken;
         public String[] conversationIds;
+    }
+
+    public class MemberErrorWrapper{
+        public List<String> members;
+        public Debug_Log__c errorLog;
     }
 }
