@@ -3,9 +3,9 @@ public class SaveSlackMessageScheduleQueueableTest {
     
     @isTest
     static void testingSchedule() {        
-        List<SaveSlackMessageHandler.FullConversation> convList = new List<SaveSlackMessageHandler.FullConversation> ();
+        List<SlackMessageObjects.FullConversation> convList = new List<SlackMessageObjects.FullConversation> ();
 
-        SaveSlackMessageHandler.FullConversation testConv = new SaveSlackMessageHandler.FullConversation();
+        SlackMessageObjects.FullConversation testConv = new SlackMessageObjects.FullConversation();
         testConv.conversationId = 'convID';
 
         convList.add(testConv);
@@ -16,7 +16,7 @@ public class SaveSlackMessageScheduleQueueableTest {
         system.schedule('Test Sched', chron, myClass);
         test.stopTest();
 
-        SaveSlackMessageHandler.FullConversation[] retrievedList = myClass.conversationsList;
+        SlackMessageObjects.FullConversation[] retrievedList = myClass.conversationsList;
 
         System.assertEquals('convID', retrievedList[0].conversationId);
 
