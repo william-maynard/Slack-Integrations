@@ -31,7 +31,7 @@ public with sharing class SlackService {
         SaveSlackMessageHandler.scheduleSaveConversations(slackConversationsToSave);
         //check if there's a next cursor then call saveAllSlackConversations
         
-        //waiting for method
+        //waiting for SaveSlackMessageScheduler method
         // if(nextCursor!=null){
         //     SaveSlackMessageScheduler savingScheduler = new SaveSlackMessageScheduler(nextCursor);
         //     Datetime time1 = Datetime.now().addMinutes(1);
