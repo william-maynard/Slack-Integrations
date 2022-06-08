@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Slack</fullName>
+    <active>true</active>
+    <description>Record type to differentiate Slack messages from other types of messaging service.</description>
+    <label>Slack</label>
+</RecordType>
