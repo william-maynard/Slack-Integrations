@@ -27,7 +27,7 @@ public with sharing class SlackUtils {
         if(currentWorkspace != null){
     
             workspaceLabel = currentWorkspace.SlackWorkspaceLabel__c;
-            String tokenString = '{"tokens":[{"slackUserId":"U03EY7KMV3R","accessToken":"xoxp-3525214328980-3508257743127-3523040523586-2a293bff380dd63342b7d207fb9081c8","workspace":"Tok Testing Org"}]}';
+            String tokenString = '{"tokens":[{"slackUserId":"U03EY7KMV3R","accessToken":"xoxp-3525214328980-3508257743127-3523040523586-2a293bff380dd63342b7d207fb9081c8","workspace":"OktanaDemo"}]}';
             Object slackTokensJson = JSON.deserializeUntyped(tokenString);
             Map<String,Object> mresults = (Map<String, Object>)System.JSON.deserializeUntyped(System.JSON.serialize(slackTokensJson));
             Object tokens = mresults.get('tokens');
@@ -58,7 +58,7 @@ public with sharing class SlackUtils {
 		}
 	}
 
-    private static String getSalesforceId(Object slackId, List<SlackMessageObjects.SlackUser> users){
+    public static String getSalesforceId(Object slackId, List<SlackMessageObjects.SlackUser> users){
         String salesforceID = '';
         for(SlackMessageObjects.SlackUser us : users){
             if(us.slackUserId == (String)slackId){
