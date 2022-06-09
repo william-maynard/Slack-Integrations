@@ -8,7 +8,7 @@ global class SaveSlackMessageScheduleQueueable implements Schedulable {
 
 	global void execute(SchedulableContext sc) {
 
-        //SaveSlackMessageHandler.saveSlackConversations(this.conversationsList);
+        SaveSlackMessageHandler.saveSlackConversations(this.conversationsList);
 		
 	}
 

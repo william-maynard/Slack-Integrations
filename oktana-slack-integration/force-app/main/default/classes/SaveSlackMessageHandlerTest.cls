@@ -33,14 +33,18 @@ public with sharing class SaveSlackMessageHandlerTest {
 
     @isTest
     public static testmethod void test1(){
+        SlackMessageObjects.FullConversation testConv = new SlackMessageObjects.FullConversation();
+        testConv.conversationId = 'convID';
+
+        convList.add(testConv);
+
         Test.startTest();
-            SaveSlackMessageHandler.scheduleSaveConversations schedulerConversartion = new SaveSlackMessageHandler.scheduleSaveConversations();
-
             String CRON_EXP = '0 0 23 * * ?'; 
-            String jboId = system.schedule('Test Territory Check', CRON_EXP, new SaveSlackMessageHandler.scheduleSaveConversations()); 
+            String jboId = system.schedule('Test Territory Check', CRON_EXP, new SaveSlackMessageHandler.scheduleSaveConversations(convList)); 
 
-            CronTrigger ct = [SELECT Id, CronExpression, TimesTriggered, NextFireTime FROM CronTrigger WHERE id = :jobId]; 
-            System.debug(ct);
+        //CronTrigger ct = [SELECT Id, CronExpression, TimesTriggered, NextFireTime FROM CronTrigger WHERE id = :jobId]; 
+           // System.debug(ct);
+           System.debug(jboId);
 
             // Verify the expressions are the same System.assertEquals(CRON_EXP, ct.CronExpression); 
             // Verify the job has not run 
