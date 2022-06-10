@@ -1,32 +1,30 @@
 public with sharing class SlackCalloutService {
-    public SlackCalloutService() {
-        public static SaveSlackMessageHandler.UserConversationPair getsConversationIds(String token, String nextCursor, Integer limitRecords){
-            SaveSlackMessageHandler.UserConversationPair pair = new SaveSlackMessageHandler.UserConversationPair();
-            pair.userToken = token;
-            //fetch conversations from API
-            String limitStr = String.valueOf(limitRecords);
-            String nextCursorStr = (nextCursor != null) ? '&cursor=' + nextCursor : '';
-            String endpoint = 'https://slack.com/api/conversations.list' + '?token=' + token + '&types=public_channel,private_channel,im&limit='+ limitStr + nextCursorStr ;
+    public static SaveSlackMessageHandler.UserConversationPair getsConversationIds(String token, String nextCursor, Integer limitRecords){
+        SaveSlackMessageHandler.UserConversationPair pair = new SaveSlackMessageHandler.UserConversationPair();
+        pair.userToken = token;
+        //fetch conversations from API
+        String limitStr = String.valueOf(limitRecords);
+        String nextCursorStr = (nextCursor != null) ? '&cursor=' + nextCursor : '';
+        String endpoint = 'https://slack.com/api/conversations.list' + '?token=' + token + '&types=public_channel,private_channel,im&limit='+ limitStr + nextCursorStr ;
 
-            Http http = new Http();
-            Map<String, String> headers = new Map<Integer, String>();
-            headers.put('Accept', 'application/x-www-form-urlencoded');
-            headers.put('Content-Type','application/x-www-form-urlencoded');
-            HttpRequest req = setRequest('POST', headers , endpoint);	
-            HttpResponse response = http.send(req);
+        Http http = new Http();
+        Map<String, String> headers = new Map<Integer, String>();
+        headers.put('Accept', 'application/x-www-form-urlencoded');
+        headers.put('Content-Type','application/x-www-form-urlencoded');
+        HttpRequest req = setRequest('POST', headers , endpoint);	
+        HttpResponse response = http.send(req);
 
-            //We need to set nextcursor for recursive structure of code
-            Map<String, Object> conversationResults = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
-            if(conversationResults.containsKey('error')){
-                return null;
-            }else{
-                pair.conversationIds = getConversationIds(conversationResults);
-                pair.nextCursor = getNextCursor(conversationResults);
-            }
-            System.debug(pair);
-            
-            return pair;
+        //We need to set nextcursor for recursive structure of code
+        Map<String, Object> conversationResults = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
+        if(conversationResults.containsKey('error')){
+            return null;
+        }else{
+            pair.conversationIds = getConversationIds(conversationResults);
+            pair.nextCursor = getNextCursor(conversationResults);
         }
+        System.debug(pair);
+        
+        return pair;
     }
 
     private static String getNextCursor(Map<String, Object> conversationResults){
