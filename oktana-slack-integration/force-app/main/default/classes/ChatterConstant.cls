@@ -106,9 +106,9 @@ public with sharing class ChatterConstant {
 	//public static String SLACK_KEY_LONG = '/slack/savedKey/key';
 	//public static String SLACK_REDIRECT_URI = 'https%3A%2F%2Fus-central1-tok-mobile.cloudfunctions.net%2FreceiveSlackCode%3F';
 	//public static String TokConversationRecordTypeDevName = 'Tok_Conversation';
-	//public static String SlackConversationRecordTypeDevName = 'Slack_conversation';
+	public static String SlackConversationRecordTypeDevName = 'Slack';
 	//public static String SlackUserName = 'Integration';
-	//public static Integer SLACK_MESSAGES_LIMIT = 100;
+	public static Integer SLACK_MESSAGES_LIMIT = 100;
 	//public static Integer SLACK_CONVERSATIONS_LIMIT = 40;
 
 
