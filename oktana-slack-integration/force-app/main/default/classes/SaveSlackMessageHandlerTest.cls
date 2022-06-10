@@ -52,27 +52,41 @@ public with sharing class SaveSlackMessageHandlerTest {
 
     @isTest(SeeAllData=true)
     public static void testSaveSlackConversations(){
-        
-        // List<Debug_Log__c> error = new List<Debug_Log__c>();
-        // error.add(new Debug_Log__c(Log_Body__c='error',Description__c='description'));
-        // List<SlackMessageObjects.FullConversation> convList = new List<SlackMessageObjects.FullConversation>();
-        // SlackMessageObjects.FullConversation testConv = new SlackMessageObjects.FullConversation();
-        // testConv.conversationId = 'convID';
-        // testConv.errorLogs = error; 
+        List<SlackMessageObjects.FullConversation> convList = new List<SlackMessageObjects.FullConversation>();
 
-        // Conversation__c conversation = new Conversation__c(Conversation_Id__c='dfs333',Slack_Conversation_Id__c='T03HBSQKZEX');
+        List<Debug_Log__c> error = new List<Debug_Log__c>();
+        error.add(new Debug_Log__c(Log_Body__c='error',Description__c='description'));
 
-        // insert conversation;
-
+        List<SlackMessageObjects.SlackMessage> messages = new List<SlackMessageObjects.SlackMessage>();
+        for(Integer i=0; i<105; i++){
+            SlackMessageObjects.SlackMessage sm1 = new SlackMessageObjects.SlackMessage();
+            sm1.textMessage = 'Text';
+            sm1.ts = 'ts';
+            sm1.isEdited = false;
+            sm1.editedTS = 'editedTs';
+            sm1.slackUserId = 'slackUserId';
     
+            messages.add(sm1);
+        }
 
-        // convList.add(testConv);
+        List<String> memberString = new List<String>();
+        User us = [select id from user limit 1];
+        memberString.add(us.id);
+
+        SlackMessageObjects.FullConversation testConv = new SlackMessageObjects.FullConversation();
+        testConv.conversationId = 'convID';
+        testConv.messages = messages;
+        testConv.errorLogs = error; 
+        testConv.members = memberString;
         
-        // Test.startTest();
+        Conversation__c conversation = new Conversation__c(Conversation_Id__c='dfs333',Slack_Conversation_Id__c='T03HBSQKZEX');
+        insert conversation;
+
+        convList.add(testConv);
         
-        // 	SaveSlackMessageHandler.saveSlackConversations(convList);
-        	
-        // Test.stopTest();
+        Test.startTest();      
+        	SaveSlackMessageHandler.saveSlackConversations(convList);    	
+        Test.stopTest();
     }
 
 
