@@ -32,26 +32,47 @@ public with sharing class SaveSlackMessageHandlerTest {
 
 
     @isTest
-    public static testmethod void test1(){
+    public static void testScheduleSaveConversations(){
+        List<SlackMessageObjects.FullConversation> convList = new List<SlackMessageObjects.FullConversation>();
         SlackMessageObjects.FullConversation testConv = new SlackMessageObjects.FullConversation();
         testConv.conversationId = 'convID';
 
         convList.add(testConv);
 
         Test.startTest();
-            String CRON_EXP = '0 0 23 * * ?'; 
-            String jboId = system.schedule('Test Territory Check', CRON_EXP, new SaveSlackMessageHandler.scheduleSaveConversations(convList)); 
+            String jobId = SaveSlackMessageHandler.scheduleSaveConversations(convList);
 
-        //CronTrigger ct = [SELECT Id, CronExpression, TimesTriggered, NextFireTime FROM CronTrigger WHERE id = :jobId]; 
-           // System.debug(ct);
-           System.debug(jboId);
-
-            // Verify the expressions are the same System.assertEquals(CRON_EXP, ct.CronExpression); 
-            // Verify the job has not run 
-            //System.assertEquals(0, ct.TimesTriggered); 
-            // Verify the next time the job will run 
-            //System.assertEquals('2022-09-03 00:00:00', String.valueOf(ct.NextFireTime));   
+            list<CronTrigger> ct = [SELECT Id,CronJobDetail.Name,CronJobDetail.Id,State FROM CronTrigger WHERE Id = :'08e8c00001SxASW'];
+            System.assertNotEquals(ct.size(), 1);
+        
+            List<CronTrigger> ct2 = [SELECT Id, CronExpression, TimesTriggered, NextFireTime FROM CronTrigger WHERE Id = :jobId]; 
+            System.assertEquals(ct2.size(), 1);  
         Test.stopTest();        
+    }
+
+    @isTest(SeeAllData=true)
+    public static void testSaveSlackConversations(){
+        
+        // List<Debug_Log__c> error = new List<Debug_Log__c>();
+        // error.add(new Debug_Log__c(Log_Body__c='error',Description__c='description'));
+        // List<SlackMessageObjects.FullConversation> convList = new List<SlackMessageObjects.FullConversation>();
+        // SlackMessageObjects.FullConversation testConv = new SlackMessageObjects.FullConversation();
+        // testConv.conversationId = 'convID';
+        // testConv.errorLogs = error; 
+
+        // Conversation__c conversation = new Conversation__c(Conversation_Id__c='dfs333',Slack_Conversation_Id__c='T03HBSQKZEX');
+
+        // insert conversation;
+
+    
+
+        // convList.add(testConv);
+        
+        // Test.startTest();
+        
+        // 	SaveSlackMessageHandler.saveSlackConversations(convList);
+        	
+        // Test.stopTest();
     }
 
 

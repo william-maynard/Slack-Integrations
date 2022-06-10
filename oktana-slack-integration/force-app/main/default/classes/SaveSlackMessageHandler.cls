@@ -11,11 +11,7 @@ public with sharing class SaveSlackMessageHandler {
             conversationData.conversationId = conversationId;
             conversationData.errorLogs = new List<Debug_Log__c>();
             String conversationType = '';
-            if(conversationId.startsWith('C')){
-                conversationType = 'channels';
-            }else{
-                conversationType = 'slackDirectMessages';
-            }
+            conversationType = getConversationType(conversationId);
 
             SlackMessageObjects.MemberErrorWrapper memberWrapper = getConversationMembers(conversationId,conversationType,allUsers,userToken);
             conversationData.members = memberWrapper.members;
@@ -112,21 +108,21 @@ public with sharing class SaveSlackMessageHandler {
                                 Integer beginning = i - ChatterConstant.SLACK_MESSAGES_LIMIT;
                                 Integer ending = i;
                                 List<SlackMessageObjects.SlackMessage> messages = copySlackMessagesList(slackConversation.messages,beginning,ending);
-                                // SaveSlackMessageQueueable slackMessageQueueable = new SaveSlackMessageQueueable(messages, communityID, message.id, tokConversation);
-                                // System.enqueueJob(slackMessageQueueable);
+                                SaveSlackMessageQueueable slackMessageQueueable = new SaveSlackMessageQueueable(messages, communityID, message.id, tokConversation);
+                                System.enqueueJob(slackMessageQueueable);
                                 i -= ChatterConstant.SLACK_MESSAGES_LIMIT;
                                 if(i< ChatterConstant.SLACK_MESSAGES_LIMIT){
                                     
                                     Integer lastBeginning = 0;
                                     Integer lastEnding = i;
                                     List<SlackMessageObjects.SlackMessage> lastMessages = copySlackMessagesList(slackConversation.messages,lastBeginning,lastEnding);
-                                    // SaveSlackMessageQueueable lastSlackMessageQueueable = new SaveSlackMessageQueueable(lastMessages, communityID, message.id, tokConversation);
-                                    // System.enqueueJob(lastSlackMessageQueueable);
+                                    SaveSlackMessageQueueable lastSlackMessageQueueable = new SaveSlackMessageQueueable(lastMessages, communityID, message.id, tokConversation);
+                                    System.enqueueJob(lastSlackMessageQueueable);
                                 }
                             }
                         }else{
-                            // SaveSlackMessageQueueable slackMessageQueueable = new SaveSlackMessageQueueable(slackConversation.messages, communityID, message.id, tokConversation);
-                            // System.enqueueJob(slackMessageQueueable);
+                            SaveSlackMessageQueueable slackMessageQueueable = new SaveSlackMessageQueueable(slackConversation.messages, communityID, message.id, tokConversation);
+                            System.enqueueJob(slackMessageQueueable);
                         }
             
                     }else{
@@ -138,21 +134,21 @@ public with sharing class SaveSlackMessageHandler {
                                 Integer beginning = i - ChatterConstant.SLACK_MESSAGES_LIMIT;
                                 Integer ending = i;
                                 List<SlackMessageObjects.SlackMessage> messages = copySlackMessagesList(slackConversation.messages,beginning,ending);
-                                // SaveSlackMessageQueueable slackMessageQueueable = new SaveSlackMessageQueueable(messages, communityID, tokConversation.Conversation_Id__c, tokConversation);
-                                // System.enqueueJob(slackMessageQueueable);
+                                SaveSlackMessageQueueable slackMessageQueueable = new SaveSlackMessageQueueable(messages, communityID, tokConversation.Conversation_Id__c, tokConversation);
+                                System.enqueueJob(slackMessageQueueable);
                                 i -= ChatterConstant.SLACK_MESSAGES_LIMIT;
                                 if(i< ChatterConstant.SLACK_MESSAGES_LIMIT){
                                 
                                     Integer lastBeginning = 0;
                                     Integer lastEnding = i;
                                     List<SlackMessageObjects.SlackMessage> lastMessages = copySlackMessagesList(slackConversation.messages,lastBeginning,lastEnding);
-                                    // SaveSlackMessageQueueable lastSlackMessageQueueable = new SaveSlackMessageQueueable(lastMessages, communityID, tokConversation.Conversation_Id__c, tokConversation);
-                                    // System.enqueueJob(lastSlackMessageQueueable);
+                                    SaveSlackMessageQueueable lastSlackMessageQueueable = new SaveSlackMessageQueueable(lastMessages, communityID, tokConversation.Conversation_Id__c, tokConversation);
+                                    System.enqueueJob(lastSlackMessageQueueable);
                                 }
                             }
                         }else{
-                            // SaveSlackMessageQueueable slackMessageQueueable = new SaveSlackMessageQueueable(slackConversation.messages, communityID, tokConversation.Conversation_Id__c, tokConversation);
-                            // System.enqueueJob(slackMessageQueueable);
+                            SaveSlackMessageQueueable slackMessageQueueable = new SaveSlackMessageQueueable(slackConversation.messages, communityID, tokConversation.Conversation_Id__c, tokConversation);
+                            System.enqueueJob(slackMessageQueueable);
                         }
                     }      
                 }
@@ -160,12 +156,13 @@ public with sharing class SaveSlackMessageHandler {
         }
     }
 
-    public static void scheduleSaveConversations(List<SlackMessageObjects.FullConversation> conversationsToSave){
+    public static String scheduleSaveConversations(List<SlackMessageObjects.FullConversation> conversationsToSave){
         SaveSlackMessageScheduleQueueable savingScheduler = new SaveSlackMessageScheduleQueueable(conversationsToSave);
         Datetime timestamp = Datetime.now().addSeconds(10);
         String cron = '' + timestamp.second() + ' ' + timestamp.minute() + ' ' + timestamp.hour() + ' ' + timestamp.day() + ' ' + timestamp.month() + ' ? 2022';
-        System.schedule('Saving Slack Messages Queueable ' + timestamp.getTime(), cron, savingScheduler);
-
+        String jobId = System.schedule('Saving Slack Messages Queueable ' + timestamp.getTime(), cron, savingScheduler);
+        
+        return jobId; 
     }
 
     public static List<SlackMessageObjects.SlackMessage> copySlackMessagesList(List<SlackMessageObjects.SlackMessage> theList, Integer firstIndex, Integer lastIndex){
@@ -189,7 +186,21 @@ public with sharing class SaveSlackMessageHandler {
         return null;
     }
 
-    //mock method can be deleted
+    private static String getConversationType(String conversationId){
+        String conversationType = '';
+
+        if(conversationId.startsWith('C')){
+            conversationType = 'channels';
+        }else{
+            conversationType = 'slackDirectMessages';
+        }
+
+        return conversationType;
+    }
+
+    /*
+    *   METHOD TO DELETE
+    */
     public static SlackMessageObjects.MemberErrorWrapper getConversationMembers(String conversationId, String convType, 
                                                                                 List<SlackMessageObjects.SlackUser> users, String userToken){
         Debug_Log__c errorLog = new Debug_Log__c();
@@ -248,6 +259,9 @@ public with sharing class SaveSlackMessageHandler {
         // return memberWrapper;
     }
 
+    /*
+    *   METHOD TO DELETE
+    */
     public static List<SlackMessageObjects.SlackMessage> getMessages(String token, String conversationId){
         List<SlackMessageObjects.SlackMessage> messages = new List<SlackMessageObjects.SlackMessage>();
         SlackMessageObjects.SlackMessage message = new SlackMessageObjects.SlackMessage();
