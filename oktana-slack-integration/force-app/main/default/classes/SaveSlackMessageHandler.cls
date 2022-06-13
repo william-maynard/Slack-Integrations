@@ -13,7 +13,7 @@ public with sharing class SaveSlackMessageHandler {
             String conversationType = '';
             conversationType = getConversationType(conversationId);
 
-            SlackMessageObjects.MemberErrorWrapper memberWrapper = getConversationMembers(conversationId,conversationType,allUsers,userToken);
+            SlackMessageObjects.MemberErrorWrapper memberWrapper = SlackCalloutService.getConversationMembers(conversationId,conversationType,allUsers,userToken);
             conversationData.members = memberWrapper.members;
             if(memberWrapper.errorLog!=null){
                 conversationData.errorLogs.add(memberWrapper.errorLog);
@@ -21,7 +21,7 @@ public with sharing class SaveSlackMessageHandler {
             
 
             if(conversationData.members.size() > 1){
-                conversationData.messages = getMessages(pair.userToken,conversationId);
+                conversationData.messages = SlackCalloutService.getMessages(pair.userToken,conversationId);
                 if(conversationData.messages != null && conversationData.messages.size() > 0){
                     results.add(conversationData);
                 }      

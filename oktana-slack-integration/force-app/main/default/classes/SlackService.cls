@@ -30,12 +30,12 @@ public with sharing class SlackService {
         SaveSlackMessageHandler.scheduleSaveConversations(slackConversationsToSave);
         //check if there's a next cursor then call saveAllSlackConversations
         
-        // if(nextCursor!=null){
-        //     SaveSlackMessageScheduler savingScheduler = new SaveSlackMessageScheduler(nextCursor);
-        //     Datetime time1 = Datetime.now().addMinutes(1);
-        //     String cron1 = '' + time1.second() + ' ' + time1.minute() + ' ' + time1.hour() + ' ' + time1.day() + ' ' + time1.month() + ' ? 2022';
-        //     System.schedule('Saving Slack Messages Trigger ' + time1.getTime(), cron1, savingScheduler);
-        // }
+        if(nextCursor!=null){
+            SaveSlackMessageScheduler savingScheduler = new SaveSlackMessageScheduler(nextCursor);
+            Datetime time1 = Datetime.now().addMinutes(1);
+            String cron1 = '' + time1.second() + ' ' + time1.minute() + ' ' + time1.hour() + ' ' + time1.day() + ' ' + time1.month() + ' ? 2022';
+            System.schedule('Saving Slack Messages Trigger ' + time1.getTime(), cron1, savingScheduler);
+        }
     }
 
     public static String getSlackToken() {
