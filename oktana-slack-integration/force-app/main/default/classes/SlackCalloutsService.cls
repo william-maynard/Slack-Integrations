@@ -1,25 +1,27 @@
 public with sharing class SlackCalloutsService {
-    // TODO: get token from custom metadata
-    private static final String TOKEN = 'xoxb-3613828084480-3639337527302-IHQWaBFvlFWbM5G8Robx1jb5';
     
     private static final String API_URL = 'https://slack.com/api/';
 
-    public static void sendMessage(String channelId, String text) {
+    public static SlackMessageObjects.SendMessageResponse sendMessage(String token, String channelId, String text) {
         String endpoint = API_URL + 'chat.postMessage';
         Http http = new Http();
         HttpRequest request = new HttpRequest();
         request.setMethod('POST');
         request.setEndpoint(endpoint);
         request.setHeader('Content-Type','application/json');
-        request.setHeader('Authorization','Bearer ' + TOKEN);
+        request.setHeader('Authorization','Bearer ' + token);
         request.setBody('{"channel":"'+ channelId +'", "text": "' + text + '"}');
-        HttpResponse response = http.send(request);
-        
-        // Parse the JSON response
-        if(response.getStatusCode() != 200) {
-            System.debug('Error sending message. Status: ' + response.getStatus());
+        HttpResponse apiResponse = http.send(request);
+
+        Map<String, Object> result = (Map<String, Object>)JSON.deserializeUntyped(apiResponse.getBody());
+        SlackMessageObjects.SendMessageResponse response = new SlackMessageObjects.SendMessageResponse();
+        response.ok = (Boolean) result.get('ok');
+        if (response.ok) {
+            response.ts = (String) result.get('ts');
         } else {
-            System.debug(response.getBody());
+            response.error = (String) result.get('error');
         }
+        System.debug(response);
+        return response;
     }
 }

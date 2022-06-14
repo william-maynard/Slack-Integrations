@@ -1,6 +1,7 @@
 public with sharing class OktanaBirthdayService {
-    
-    private static Map<String,List<User>> getUsers(){
+    public enum Type {BIRTHDAY, OKTANA_BIRTHDAY}
+
+    private static Map<Type,List<User>> getUsers(){
         Id contactEmployeeRecordTypeId = Schema.SObjectType.Contact.getRecordTypeInfosByName().get('Employee').getRecordTypeId();
        
         Map<Id,Contact> contactMap = new Map<Id, Contact>([
@@ -14,116 +15,81 @@ public with sharing class OktanaBirthdayService {
         List<User> oktanaBirthdays = new List<User>();
         
         // community user
-        for (User u : [SELECT Id, Name, ContactId FROM User WHERE ContactId = :contactMap.keySet() limit 9999]) {
-            if (contactMap.get(u.ContactId).ThisYearBirthday__c == Date.today()) {
-           		birthdays.add(u);
+        for (User user : [SELECT Id, ContactId, SlackID__c 
+                            FROM User 
+                            WHERE ContactId = :contactMap.keySet() 
+                            AND SlackID__c != null
+                            LIMIT 9999]) {
+            if (contactMap.get(user.ContactId).ThisYearBirthday__c == Date.today()) {
+           		birthdays.add(user);
             } else {
-                oktanaBirthdays.add(u);
+                oktanaBirthdays.add(user);
             }
         }
         
         // standard user
-        for (User u : [SELECT Id, Name, okty_rrhh__ContactId__c FROM User WHERE okty_rrhh__ContactId__c = :contactMap.keySet() limit 9999]) {
-            if (contactMap.get(u.okty_rrhh__ContactId__c).ThisYearBirthday__c == Date.today()) {
-           		birthdays.add(u);
+        for (User user : [SELECT Id, okty_rrhh__ContactId__c, SlackID__c 
+                            FROM User 
+                            WHERE okty_rrhh__ContactId__c = :contactMap.keySet() 
+                            AND SlackID__c != null
+                            LIMIT 9999]) {
+            if (contactMap.get(user.okty_rrhh__ContactId__c).ThisYearBirthday__c == Date.today()) {
+           		birthdays.add(user);
             } else {
-                oktanaBirthdays.add(u);
+                oktanaBirthdays.add(user);
             }
         }
 
-        Map<String,List<User>> result = new Map<String,List<User>>();
-        result.put('birthdays', birthdays);
-        result.put('oktanaBirthdays', oktanaBirthdays);
+        Map<Type,List<User>> result = new Map<Type,List<User>>();
+        result.put(Type.BIRTHDAY, birthdays);
+        result.put(Type.OKTANA_BIRTHDAY, oktanaBirthdays);
         return result;
     }
-    
-    private static ConnectApi.MessageBodyInput getMessage( List<User> users) {
-
-        ConnectApi.MessageBodyInput messageBodyInput = new ConnectApi.MessageBodyInput();
-        messageBodyInput.messageSegments = new List<ConnectApi.MessageSegmentInput>();
-    
-        ConnectApi.MentionSegmentInput mentionGroup = new ConnectApi.MentionSegmentInput();
-        mentionGroup.id = '0F94T000000CyhrSAC';
-        
-        ConnectApi.TextSegmentInput startText = new ConnectApi.TextSegmentInput();
-        startText.text = ' Happy Birthday ';
-        
-        ConnectApi.TextSegmentInput endText = new ConnectApi.TextSegmentInput();
-        endText.text = ' from your Oktana family! 🎂';
-        
-        // add to segment
-        messageBodyInput.messageSegments.add(mentionGroup);
-        messageBodyInput.messageSegments.add(startText);
-        
-        for (User u : users) {
-            ConnectApi.MentionSegmentInput userMention = new ConnectApi.MentionSegmentInput();
-            userMention.id = u.id;
-            messageBodyInput.messageSegments.add(userMention);
-            ConnectApi.TextSegmentInput separator = new ConnectApi.TextSegmentInput();
-            separator.text = ',';
-            messageBodyInput.messageSegments.add(separator);
-        }    
-        
-        messageBodyInput.messageSegments.add(endText);
-        return messageBodyInput;
-    }
-             
-    private static ConnectApi.MessageBodyInput getOktanaBirthdayMessage( List<User> users) {
-
-        ConnectApi.MessageBodyInput messageBodyInput = new ConnectApi.MessageBodyInput();
-        messageBodyInput.messageSegments = new List<ConnectApi.MessageSegmentInput>();
-    
-        ConnectApi.MentionSegmentInput mentionGroup = new ConnectApi.MentionSegmentInput();
-        mentionGroup.id = '0F94T000000CyhrSAC';
-        
-        ConnectApi.TextSegmentInput startText = new ConnectApi.TextSegmentInput();
-        startText.text = ' Happy Oktaversary ';
-        
-        ConnectApi.TextSegmentInput endText = new ConnectApi.TextSegmentInput();
-        endText.text = ' we’re so happy you’re part of Oktana! 🎉';
-        
-        // add to segment
-        messageBodyInput.messageSegments.add(mentionGroup);
-        messageBodyInput.messageSegments.add(startText);
-        
-        for (User u : users) {
-            ConnectApi.MentionSegmentInput userMention = new ConnectApi.MentionSegmentInput();
-            userMention.id = u.id;
-            messageBodyInput.messageSegments.add(userMention);
-            ConnectApi.TextSegmentInput separator = new ConnectApi.TextSegmentInput();
-            separator.text = ',';
-            messageBodyInput.messageSegments.add(separator);
-        }    
-        
-        messageBodyInput.messageSegments.add(endText);
-        return messageBodyInput;
-    }
-    
-    public static void sayBirthday(){
-        Map<String,List<User>> userMap = getUsers();
-        
-        if (userMap.get('birthdays').size() > 0) {
-            ConnectApi.MessageBodyInput body = HappyBirthdayController.getMessage(userMap.get('birthdays'));
-            
-            ConnectApi.FeedItemInput feedItemInput = new ConnectApi.FeedItemInput();
-            feedItemInput.body = body;
-            feedItemInput.feedElementType = ConnectApi.FeedElementType.FeedItem;
-            feedItemInput.subjectId = '0F94T000000CyhrSAC';
-        
-            ConnectApi.ChatterFeeds.postFeedElement('0DB4T000000CapoWAC', feedItemInput);
+     
+    @TestVisible
+    private static String getMessage(Type bType, List<User> users) {
+        String message = '';
+        String mentions = '';
+        if (bType == Type.BIRTHDAY) {
+            mentions = getMentions(users);
+            message = 'Happy Birthday ' + mentions + 'from your Oktana family! 🎂';
+        } else if (bType == Type.OKTANA_BIRTHDAY) {
+            mentions = getMentions(users);
+            message = 'Happy Oktaversary ' + mentions + 'we’re so happy you’re part of Oktana! 🎉';
         }
         
-        if (userMap.get('oktanaBirthdays').size() > 0) {
-            ConnectApi.MessageBodyInput body = HappyBirthdayController.getOktanaBirthdayMessage(userMap.get('oktanaBirthdays'));
-            
-            ConnectApi.FeedItemInput feedItemInput = new ConnectApi.FeedItemInput();
-            feedItemInput.body = body;
-            feedItemInput.feedElementType = ConnectApi.FeedElementType.FeedItem;
-            feedItemInput.subjectId = '0F94T000000CyhrSAC';
-         
-            ConnectApi.ChatterFeeds.postFeedElement('0DB4T000000CapoWAC', feedItemInput);
-        }
+        return message;
+    }
 
+    @TestVisible
+    private static String getMentions(List<User> users) {
+        String mentions = '';
+        for (User user : users) {
+            mentions += '<@'+ user.SlackID__c +'>, ';
+        }
+        return mentions;
+    }
+    
+    public static void sayBirthdayOnSlack(){
+        String token = SlackService.getSlackToken();
+        // get custom setting
+        SlackWorkspace__c  currentWorkspace = SlackWorkspace__c.getValues('CurrentWorkspace');
+        Map<Type, List<User>> userMap = getUsers();
+        String message = '';
+        
+        if (userMap.get(Type.BIRTHDAY).size() > 0) {
+            message = getMessage(Type.BIRTHDAY, userMap.get(Type.BIRTHDAY));
+            // preppend mention to the channel
+            message = '<#' + currentWorkspace.channelGeneralId__c + '>' + message;
+            SlackCalloutsService.sendMessage(token, currentWorkspace.channelGeneralId__c, message);
+        }
+        
+        if (userMap.get(Type.OKTANA_BIRTHDAY).size() > 0) {
+            message = getMessage(Type.OKTANA_BIRTHDAY, userMap.get(Type.OKTANA_BIRTHDAY));
+            // preppend mention to the channel
+            message = '<#' + currentWorkspace.channelGeneralId__c + '>' + message;
+            SlackCalloutsService.sendMessage(token, currentWorkspace.channelGeneralId__c, message);
+        }
     }
 
 }

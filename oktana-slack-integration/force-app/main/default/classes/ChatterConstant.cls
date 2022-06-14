@@ -114,5 +114,4 @@ public with sharing class ChatterConstant {
 
 	public static Integer MAX_FIELD_LENGTH = 131072;
 	public static Integer MAX_CHARS_UNTIL_TS_FIELD_RESET = 95058;
-	public static String SLACK_GENERAL_CHANNEL_ID = 'C03HC17BCKD';
 }
