@@ -111,7 +111,7 @@ public with sharing class SlackCalloutService {
         }else{
             List<Object> membersList = (List<Object> )JSON.deserializeUntyped(System.JSON.serialize(membersResults.get('members')));
             for(Object memberObject : membersList){
-                String salesforceID = getSalesforceId(memberObject,users);                    
+                String salesforceID = SlackUtils.getSalesforceId(memberObject,users);                    
                 if(salesforceID != null && salesforceID != '' && !members.contains(salesforceID)){
                     members.add(salesforceID);
                 }
@@ -131,18 +131,6 @@ public with sharing class SlackCalloutService {
         memberWrapper.members = members;
         memberWrapper.errorLog = logError;
         return memberWrapper;
-    }
-
-    private static String getSalesforceId(Object slackId, List<SlackMessageObjects.SlackUser> users){
-        String salesforceID = '';
-        for(SlackMessageObjects.SlackUser us : users){
-            if(us.slackUserId == (String)slackId){
-                salesforceID = us.salesforceUserId;
-                break;
-            }
-        }
-        
-        return salesforceID;
     }
 
     private static HttpRequest setRequest(String method, Map<String, String> headers, String endpoint){
