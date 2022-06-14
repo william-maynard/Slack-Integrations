@@ -23,6 +23,7 @@ public with sharing class SlackMessageObjects {
     public class UserConversationPair{
         public String userToken;
         public String[] conversationIds;
+        public String nextCursor;
     }
 
     public class MemberErrorWrapper{
