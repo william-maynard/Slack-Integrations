@@ -20,6 +20,13 @@ public with sharing class SlackMessageObjects {
         public String salesforceUserId;
     }
 
+    public class SendMessageResponse {
+        public boolean ok;
+        public String ts;
+        public String error;
+
+    }
+
     public class UserConversationPair{
         public String userToken;
         public String[] conversationIds;
