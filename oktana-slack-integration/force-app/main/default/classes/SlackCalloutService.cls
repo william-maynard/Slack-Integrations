@@ -25,6 +25,7 @@ public with sharing class SlackCalloutService {
         return pair;
     }
 
+    @TestVisible
     private static String getNextCursor(Map<String, Object> conversationResults){
         if(conversationResults.containsKey('response_metadata')){
             Map<String, Object> responseMetadata = (Map<String, Object>)JSON.deserializeUntyped(System.JSON.serialize(conversationResults.get('response_metadata')));
@@ -67,6 +68,7 @@ public with sharing class SlackCalloutService {
         return messages;
     }
 
+    @TestVisible
     private static List<SlackMessageObjects.SlackMessage> setMessages(List<Object> messagesListObject){
         List<SlackMessageObjects.SlackMessage> messages = new List<SlackMessageObjects.SlackMessage>();
 

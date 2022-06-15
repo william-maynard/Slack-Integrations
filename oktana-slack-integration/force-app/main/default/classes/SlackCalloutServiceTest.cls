@@ -140,5 +140,76 @@ public with sharing class SlackCalloutServiceTest {
 
         System.assertEquals(slackMsgs, null);
     }
+
+    @IsTest 
+    static void getNextCursorSuccessTest(){
+        HttpResponse resp = new HttpResponse();
+        resp.setStatusCode(200);
+        resp.setStatus('Success');
+        String testString = '{"response_metadata":{"next_cursor":"nextcursorvalue"}}';
+        resp.setBody(testString);
+
+        Map<String, Object> conversationResults = (Map<String, Object>)JSON.deserializeUntyped(resp.getBody());
+
+        Test.startTest();
+        String nc = SlackCalloutService.getNextCursor(conversationResults);
+        Test.stopTest();
+
+        System.assertEquals(nc, 'nextcursorvalue');
+    }
+
+    @IsTest 
+    static void getNextCursorErrorTest(){
+        HttpResponse resp = new HttpResponse();
+        resp.setStatusCode(200);
+        resp.setStatus('Success');
+        String testString = '{"error":true}';
+        resp.setBody(testString);
+
+        Map<String, Object> conversationResults = (Map<String, Object>)JSON.deserializeUntyped(resp.getBody());
+
+        Test.startTest();
+        String nc = SlackCalloutService.getNextCursor(conversationResults);
+        Test.stopTest();
+
+        System.assertEquals(nc, null);
+        
+    }
+
+    @IsTest 
+    static void setMessagesTest(){
+        HttpResponse resp = new HttpResponse();
+        resp.setStatusCode(200);
+        resp.setStatus('Success');
+        String testString = '{"ok":true,"messages":[{"type":"message","user":"U012AB3CDE","text":"I find you punny and would like to smell your nose letter","ts":"1512085950.000216"},{"type":"message","user":"U061F7AUR","text":"What, you want to smell my shoes better?","ts":"1512104434.000490"}],"has_more":true,"pin_count":0,"response_metadata":{"next_cursor":"bmV4dF90czoxNTEyMDg1ODYxMDAwNTQz"}}';
+        resp.setBody(testString);
+
+        Map<String, Object> results = (Map<String, Object>)JSON.deserializeUntyped(resp.getBody());
+        List<Object> messagesListObject = (List<Object> )JSON.deserializeUntyped(System.JSON.serialize(results.get('messages')));
+
+        Test.startTest();
+        List<SlackMessageObjects.SlackMessage> sm = SlackCalloutService.setMessages(messagesListObject);
+        Test.stopTest();
+
+        System.assertEquals(sm.size(), 2);
+    }
+
+    @IsTest 
+    static void setMessagesEditTest(){
+        HttpResponse resp = new HttpResponse();
+        resp.setStatusCode(200);
+        resp.setStatus('Success');
+        String testString = '{"ok":true,"messages":[{"type":"message","user":"U012AB3CDE","edited":{"ts":"1512085950.000216"},"text":"I find you punny and would like to smell your nose letter","ts":"1512085950.000216"},{"type":"message","user":"U061F7AUR","text":"What, you want to smell my shoes better?","ts":"1512104434.000490"}],"has_more":true,"pin_count":0,"response_metadata":{"next_cursor":"bmV4dF90czoxNTEyMDg1ODYxMDAwNTQz"}}';
+        resp.setBody(testString);
+
+        Map<String, Object> results = (Map<String, Object>)JSON.deserializeUntyped(resp.getBody());
+        List<Object> messagesListObject = (List<Object> )JSON.deserializeUntyped(System.JSON.serialize(results.get('messages')));
+
+        Test.startTest();
+        List<SlackMessageObjects.SlackMessage> sm = SlackCalloutService.setMessages(messagesListObject);
+        Test.stopTest();
+
+        System.assertEquals(sm.size(), 2);
+    }
     
 }
