@@ -1,6 +1,6 @@
 public with sharing class OktanaBirthdayService {
     public enum Type {BIRTHDAY, OKTANA_BIRTHDAY}
-
+    @TestVisible
     private static Map<Type,List<User>> getUsers(){
         Id contactEmployeeRecordTypeId = Schema.SObjectType.Contact.getRecordTypeInfosByName().get('Employee').getRecordTypeId();
        
