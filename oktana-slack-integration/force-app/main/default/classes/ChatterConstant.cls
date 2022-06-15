@@ -110,6 +110,7 @@ public with sharing class ChatterConstant {
 	//public static String SlackUserName = 'Integration';
 	public static Integer SLACK_MESSAGES_LIMIT = 100;
 	//public static Integer SLACK_CONVERSATIONS_LIMIT = 40;
+	public static String cryptoKey = 'CuVDQFRtlbP9TbpJMXDdXQ==';
 
 
 	public static Integer MAX_FIELD_LENGTH = 131072;
