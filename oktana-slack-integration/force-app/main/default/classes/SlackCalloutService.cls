@@ -135,6 +135,7 @@ public with sharing class SlackCalloutService {
         return memberWrapper;
     }
 
+    @TestVisible
     private static HttpRequest setRequest(String method, Map<String, String> headers, String endpoint){
         HttpRequest request = new HttpRequest();
         request.setMethod(method);
