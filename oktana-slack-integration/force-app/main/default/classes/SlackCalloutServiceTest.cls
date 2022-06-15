@@ -140,5 +140,22 @@ public with sharing class SlackCalloutServiceTest {
 
         System.assertEquals(slackMsgs, null);
     }
+
+    @IsTest 
+    static void setRequestTest() {
+        HttpRequest response = new HttpRequest();
+        response.setEndpoint('https://slack.com/api/conversations.list?token=xoxp-3331607868951-3348554113556-3579730000528-0bab6fe771a836e8fb95f3de4ecb004e&types=public_channel,private_channel,im&limit=301');
+        response.setMethod('POST');
+
+        String token = 'xoxp-3331607868951-3348554113556-3579730000528-0bab6fe771a836e8fb95f3de4ecb004e';
+        Map<String, String> headers = new Map<String, String>();
+        headers.put('Accept', 'application/x-www-form-urlencoded');
+        headers.put('Content-Type','application/x-www-form-urlencoded');
+        String endpoint = 'https://slack.com/api/conversations.list' + '?token=' + token + '&types=public_channel,private_channel,im&limit='+ 30 + 1 ;
+
+        HttpRequest req = SlackCalloutService.setRequest('POST', headers , endpoint);	
+
+        System.assertNotEquals(response, req);
+    }
     
 }
