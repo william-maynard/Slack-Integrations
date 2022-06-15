@@ -1,5 +1,5 @@
 public with sharing class SlackCalloutService {
-    public static SlackMessageObjects.UserConversationPair getsConversationIds(String token, String nextCursor, Integer limitRecords){
+    public static SlackMessageObjects.UserConversationPair getConversationPairs(String token, String nextCursor, Integer limitRecords){
         SlackMessageObjects.UserConversationPair pair = new SlackMessageObjects.UserConversationPair();
         pair.userToken = token;
         //fetch conversations from API
@@ -39,6 +39,7 @@ public with sharing class SlackCalloutService {
         return null;
     }
 
+    @TestVisible
     private static String[] getConversationIds(Map<String, Object> conversationResults){
         String[] conversationids = new String[]{};
         List<Object> channels = (List<Object> )JSON.deserializeUntyped(System.JSON.serialize(conversationResults.get('channels')));

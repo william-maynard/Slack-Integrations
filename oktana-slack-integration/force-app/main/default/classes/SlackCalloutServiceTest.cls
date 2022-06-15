@@ -62,19 +62,19 @@ public with sharing class SlackCalloutServiceTest {
     }
 
     @isTest 
-    static void getsConversationIdsSucessTest() {
+    static void getConversationPairsSucessTest() {
         Test.startTest();
         Test.setMock(HttpCalloutMock.class, new Mock());
-        SlackMessageObjects.UserConversationPair convPair = SlackCalloutService.getsConversationIds('token', 'nextcursor', CONVERSATION_PAIR_LIMIT_SIZE);
+        SlackMessageObjects.UserConversationPair convPair = SlackCalloutService.getConversationPairs('token', 'nextcursor', CONVERSATION_PAIR_LIMIT_SIZE);
         Test.stopTest();
         System.assertEquals(convPair.conversationIds.size(), CONVERSATION_PAIR_LIST_SIZE);
     }
 
     @isTest 
-    static void getsConversationIdsErrorTest() {
+    static void getConversationPairsErrorTest() {
         Test.startTest();
         Test.setMock(HttpCalloutMock.class, new Mock());
-        SlackMessageObjects.UserConversationPair convPair = SlackCalloutService.getsConversationIds('error_mock', 'nextcursor', CONVERSATION_PAIR_LIMIT_SIZE);
+        SlackMessageObjects.UserConversationPair convPair = SlackCalloutService.getConversationPairs('error_mock', 'nextcursor', CONVERSATION_PAIR_LIMIT_SIZE);
         Test.stopTest();
         System.assertEquals(convPair, null);
     }
@@ -228,6 +228,23 @@ public with sharing class SlackCalloutServiceTest {
         HttpRequest req = SlackCalloutService.setRequest('POST', headers , endpoint);	
 
         System.assertNotEquals(response, req);
+    }
+
+    @IsTest 
+    static void getConversationIdsTest(){
+        HttpResponse resp = new HttpResponse();
+        resp.setStatusCode(200);
+        resp.setStatus('Success');
+        String testString = '{"channels":[{"id":"C1"},{"id":"C2"}]}';
+        resp.setBody(testString);
+
+        Map<String, Object> conversationResults = (Map<String, Object>)JSON.deserializeUntyped(resp.getBody());
+
+        Test.startTest();
+        String[] cids = SlackCalloutService.getConversationIds(conversationResults);
+        Test.stopTest();
+
+        System.assertEquals(cids.size(), 2);
     }
     
 }
