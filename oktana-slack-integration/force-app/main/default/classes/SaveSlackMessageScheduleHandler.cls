@@ -1,6 +1,6 @@
 public with sharing class SaveSlackMessageScheduleHandler {
 
-
+    @future(callout=true)
     public static void saveAllSlackConversations(String nextCursor){
 
         String token = SlackService.getSlackToken();
@@ -14,15 +14,7 @@ public with sharing class SaveSlackMessageScheduleHandler {
         slackDebug1.Log_Body__c = String.valueOf(jobLimit);
         errorLogs.add(slackDebug1);
 
-        //SlackMessageObjects.UserConversationPair userConversationPair = SlackCalloutService.getsConversationIds(token, nextCursor, jobLimit);
-
-        //Mocked data for when the callouts class is ready
-        SlackMessageObjects.UserConversationPair userConversationPair = new SlackMessageObjects.UserConversationPair();
-        userConversationPair.conversationIds = new List<String>();
-        userConversationPair.conversationIds.add('C128745');
-        userConversationPair.conversationIds.add('C1854768');
-        userConversationPair.conversationIds.add('C856739');
-        userConversationPair.userToken = token;
+        SlackMessageObjects.UserConversationPair userConversationPair = SlackCalloutService.getConversationPairs(token, nextCursor, jobLimit);
 
         Debug_Log__c slackDebug2 = new Debug_Log__c();
         slackDebug2.Name = 'SaveSlackMessageScheduleHandler-saveAllSlackConversations-Line 17';
