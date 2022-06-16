@@ -18,6 +18,7 @@ public with sharing class SlackMessageObjects {
         public String slackUserId;
         //public String token;
         public String salesforceUserId;
+        public String email;
     }
 
     public class SendMessageResponse {

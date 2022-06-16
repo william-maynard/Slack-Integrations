@@ -9,7 +9,7 @@ public with sharing class SlackCalloutsServiceTest {
         String channelId = 'AAAAAAAAAA1';
         String text = 'Test Message';
         // Make fake callout
-        SlackMessageObjects.SendMessageResponse response = SlackCalloutsService.sendMessage(token, channelId, text);
+        SlackMessageObjects.SendMessageResponse response = SlackCalloutService.sendMessage(token, channelId, text);
         // Verify that the response received contains fake values
         System.assert(response.ok, 'Ok attribute should be true');
         String expected = '1655154135.667139';
@@ -24,7 +24,7 @@ public with sharing class SlackCalloutsServiceTest {
         String channelId = 'AAAAAAAAAA2';
         String text = 'Test Message';
         // Make fake callout
-        SlackMessageObjects.SendMessageResponse response = SlackCalloutsService.sendMessage(token, channelId, text);
+        SlackMessageObjects.SendMessageResponse response = SlackCalloutService.sendMessage(token, channelId, text);
         // Verify that the response received contains fake values
         System.assert(!response.ok, 'Ok attribute should be false');
         System.assert(response.ts == null);

@@ -82,14 +82,14 @@ public with sharing class OktanaBirthdayService {
             message = getMessage(Type.BIRTHDAY, userMap.get(Type.BIRTHDAY));
             // preppend mention to the channel
             message = '<#' + currentWorkspace.channelGeneralId__c + '>' + message;
-            SlackCalloutsService.sendMessage(token, currentWorkspace.channelGeneralId__c, message);
+            SlackCalloutService.sendMessage(token, currentWorkspace.channelGeneralId__c, message);
         }
         
         if (userMap.get(Type.OKTANA_BIRTHDAY).size() > 0) {
             message = getMessage(Type.OKTANA_BIRTHDAY, userMap.get(Type.OKTANA_BIRTHDAY));
             // preppend mention to the channel
             message = '<#' + currentWorkspace.channelGeneralId__c + '>' + message;
-            SlackCalloutsService.sendMessage(token, currentWorkspace.channelGeneralId__c, message);
+            SlackCalloutService.sendMessage(token, currentWorkspace.channelGeneralId__c, message);
         }
     }
 
