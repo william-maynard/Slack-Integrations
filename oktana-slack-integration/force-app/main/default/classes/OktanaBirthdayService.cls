@@ -70,6 +70,7 @@ public with sharing class OktanaBirthdayService {
         return mentions;
     }
     
+    @future(callout=true)
     public static void sayBirthdayOnSlack(){
         String token = SlackService.getSlackToken();
         // get custom setting
