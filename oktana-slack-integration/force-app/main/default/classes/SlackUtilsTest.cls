@@ -55,11 +55,6 @@ private class SlackUtilsTest {
 
     @isTest
     static void mapSlackIdsToAllUsersWorkspaceDoesNotExistTest(){
-        SlackWorkspace__c wspaceToInsert = new SlackWorkspace__c();
-        wspaceToInsert.Name = 'CurrentWorkspace';
-        wspaceToInsert.SlackWorkspaceId__c = 'T039RHVRJTZ';
-        wspaceToInsert.SlackWorkspaceLabel__c = 'OktanaDemo1';
-        insert wspaceToInsert;
 
         List<User> userList = createTestUsers();
         Test.startTest();
