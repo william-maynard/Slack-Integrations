@@ -2,10 +2,10 @@ public with sharing class SlackUtils {
 
     public static List<SlackMessageObjects.SlackUser> mapSlackIdsToAllUsers(List<User> chatterUsersList){
         List<SlackMessageObjects.SlackUser> results = new List<SlackMessageObjects.SlackUser>();
-
-        Boolean ver = verifyWorkspace();
         
-        if(ver){
+        SlackWorkspace__c  currentWorkspace = SlackWorkspace__c.getValues('CurrentWorkspace');
+        
+        if(currentWorkspace != null){
             for(User chatterUser : chatterUsersList){
                 if(chatterUser.SlackID__c != null){
                     SlackMessageObjects.SlackUser mapUser = new SlackMessageObjects.SlackUser();
@@ -17,34 +17,6 @@ public with sharing class SlackUtils {
             }
         }
         return results;
-    }
-    
-    private static Boolean verifyWorkspace(){
-        
-        SlackWorkspace__c  currentWorkspace = SlackWorkspace__c.getValues('CurrentWorkspace');
-        String workspaceLabel = null;
-    
-        if(currentWorkspace != null){
-    
-            workspaceLabel = currentWorkspace.SlackWorkspaceLabel__c;
-            String tokenString = '{"tokens":[{"slackUserId":"U03EY7KMV3R","accessToken":"xoxp-3525214328980-3508257743127-3523040523586-2a293bff380dd63342b7d207fb9081c8","workspace":"OktanaDemo"}]}';
-            Object slackTokensJson = JSON.deserializeUntyped(tokenString);
-            Map<String,Object> mresults = (Map<String, Object>)System.JSON.deserializeUntyped(System.JSON.serialize(slackTokensJson));
-            Object tokens = mresults.get('tokens');
-            //tokens it's a json with all the tokens for a user using this structure: accessToken, slackUserId, workspace
-            List<Object> tokensList = new List<Object>();
-            tokensList = (List<Object>)System.JSON.deserializeUntyped(System.JSON.serialize(tokens));
-    
-            for (Integer i = (tokensList.size()-1) ; i>= 0 ; i--){
-                Map<String, Object> tokenItem = (Map<String, Object>)System.JSON.deserializeUntyped(System.JSON.serialize(tokensList[i]));
-                String workspace = (String)tokenItem.get('workspace');
-                if(workspace.equals(workspaceLabel)){
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     public static String getNewMessageTimestampField( String oldTimestamp, String timestampToInsert){

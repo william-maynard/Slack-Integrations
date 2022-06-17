@@ -12,7 +12,7 @@ global with sharing class SaveSlackMessageScheduler implements Schedulable, Data
     
     global void execute(SchedulableContext sc) {
 
-		//SaveSlackMessageScheduleHandler.saveSlackMessagesAllUsers();
+		SaveSlackMessageScheduleHandler.saveAllSlackConversations(this.nextCursor);
 		
 	}
 }
