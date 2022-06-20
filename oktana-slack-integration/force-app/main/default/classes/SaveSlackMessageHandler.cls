@@ -13,7 +13,7 @@ public with sharing class SaveSlackMessageHandler {
             String conversationType = '';
             conversationType = getConversationType(conversationId);
 
-            SlackMessageObjects.MemberErrorWrapper memberWrapper = getConversationMembers(conversationId,conversationType,allUsers,userToken);
+            SlackMessageObjects.MemberErrorWrapper memberWrapper = SlackCalloutService.getConversationMembers(conversationId,conversationType,allUsers,userToken);
             conversationData.members = memberWrapper.members;
             if(memberWrapper.errorLog!=null){
                 conversationData.errorLogs.add(memberWrapper.errorLog);
@@ -21,7 +21,7 @@ public with sharing class SaveSlackMessageHandler {
             
 
             if(conversationData.members.size() > 1){
-                conversationData.messages = getMessages(pair.userToken,conversationId);
+                conversationData.messages = SlackCalloutService.getMessages(pair.userToken,conversationId);
                 if(conversationData.messages != null && conversationData.messages.size() > 0){
                     results.add(conversationData);
                 }      
@@ -66,14 +66,6 @@ public with sharing class SaveSlackMessageHandler {
                 system.debug('Error line 65');
                 System.debug(e.getMessage());
             }
-            /*
-            System.debug('The conversations to be saved in this queueable are:');
-            for(FullConversation slackConversation : slackConvs){
-                listOFIds.add(slackConversation.conversationId);
-                //System.debug(slackConversation.conversationId);
-                convId.add(String.valueOf(slackConversation.conversationId));
-            }
-            */
 
             List<Conversation__c> existingConversationsOnSF = [SELECT Id, Conversation_Id__c, Message_timestamps__c,Slack_Conversation_Id__c FROM Conversation__c WHERE Slack_Workspace_Id__c = :workspaceID AND Slack_Conversation_Id__c IN :listOfIds];
 
@@ -216,117 +208,6 @@ public with sharing class SaveSlackMessageHandler {
             SaveSlackMessageQueueable slackMessageQueueable = new SaveSlackMessageQueueable(slackConversation.messages, communityID, tokConversation.Conversation_Id__c, tokConversation);
             System.enqueueJob(slackMessageQueueable);
         }
-    }
-
-
-    /*
-    *   METHOD TO DELETE
-    */
-    public static SlackMessageObjects.MemberErrorWrapper getConversationMembers(String conversationId, String convType, 
-                                                                                List<SlackMessageObjects.SlackUser> users, String userToken){
-        Debug_Log__c errorLog = new Debug_Log__c();
-        errorLog.name = 'SaveSlackMessageHandler-getConversationMembers-line 384';
-        errorLog.Description__c = 'Conversation ' + String.valueOf(conversationId) + ' will be added with members: ';
-        errorLog.Log_Body__c = 'menbersList';
-
-        List<String> members = new List<String>();
-        members.add('12');
-        members.add('3');
-
-        SlackMessageObjects.MemberErrorWrapper error = new SlackMessageObjects.MemberErrorWrapper();
-        error.members = members;
-        error.errorLog = errorLog;
-
-        return error;
-        // SlackMessageObjects.MemberErrorWrapper memberWrapper = new SlackMessageObjects.MemberErrorWrapper();
-        // List<String> members = new List<String>();
-
-        // Debug_Log__c logError = null;
-
-        // String endpoint = 'https://slack.com/api/conversations.members' + '?token=' + userToken + '&channel=' + conversationId;
-        // Http http = new Http();
-        // HttpRequest req = new HttpRequest();
-        // req.setMethod('GET');
-        // req.setHeader('Accept', 'application/x-www-form-urlencoded');
-        // req.setHeader('Content-Type','application/x-www-form-urlencoded');
-        // req.setEndpoint(endpoint);	
-        // HttpResponse response = http.send(req);
-
-        // Map<String, Object> membersResults = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
-        // if(membersResults.containsKey('error')){
-        //     return null;
-        // }else{
-        //     List<Object> membersList = (List<Object> )JSON.deserializeUntyped(System.JSON.serialize(membersResults.get('members')));
-        //     for(Object memberObject : membersList){
-        //         String salesforceID = getSalesforceId(memberObject,users);                    
-        //         if(salesforceID != null && salesforceID != '' && !members.contains(salesforceID)){
-        //             members.add(salesforceID);
-        //         }
-        //     }
-        //     if(members.size() <= 1){
-        //         logError = new Debug_Log__c();
-        //         logError.name = 'SaveSlackMessageHandler-getConversationMembers-line 379';
-        //         logError.Description__c = 'Conversation ' + String.valueOf(conversationId) + ' does not have enough members on Salesforce: ';
-        //         logError.Log_Body__c = String.valueOf(membersList);
-        //     } else{
-        //         logError = new Debug_Log__c();
-        //         logError.name = 'SaveSlackMessageHandler-getConversationMembers-line 384';
-        //         logError.Description__c = 'Conversation ' + String.valueOf(conversationId) + ' will be added with members: ';
-        //         logError.Log_Body__c = String.valueOf(membersList);
-        //     }
-        // }
-        // memberWrapper.members = members;
-        // memberWrapper.errorLog = logError;
-        // return memberWrapper;
-    }
-
-    /*
-    *   METHOD TO DELETE
-    */
-    public static List<SlackMessageObjects.SlackMessage> getMessages(String token, String conversationId){
-        List<SlackMessageObjects.SlackMessage> messages = new List<SlackMessageObjects.SlackMessage>();
-        SlackMessageObjects.SlackMessage message = new SlackMessageObjects.SlackMessage();
-        message.textMessage = 'Test Message';
-        message.ts = 'ts';
-        message.isEdited = false;
-        message.editedTs = 'ts editeable';
-        message.slackUserId = '12';
-
-        messages.add(message);
-
-        return messages;
-        // List<SlackMessage> messages = new List<SlackMessage>();
-        // Datetime limitDateTime = Datetime.now().addDays(-1);
-        // Long limitTimestamp = Long.valueOf(''+limitDateTime.getTime()/1000);
-        // String messagesEndpoint = 'https://slack.com/api/conversations.history' + '?token=' + token + '&channel=' + conversationId + '&limit=500';
-
-        // Http http = new Http();
-        //     HttpRequest req = new HttpRequest();
-        //     req.setMethod('POST');
-        //     req.setHeader('Accept', 'application/x-www-form-urlencoded');
-        //     req.setHeader('Content-Type','application/x-www-form-urlencoded'); 
-        //     req.setEndpoint(messagesEndpoint);
-        //     HttpResponse response = http.send(req);
-        //     Map<String, Object> results = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
-        //     List<Object> messagesListObject = (List<Object> )JSON.deserializeUntyped(System.JSON.serialize(results.get('messages')));
-        //     for(Object messageObj : messagesListObject){
-        //         Map<String, Object> messageItem = (Map<String, Object>)System.JSON.deserializeUntyped(System.JSON.serialize(messageObj));
-        //         SlackMessage parsedMessage =  new SlackMessage();
-        //         if(messageItem.get('type') != null && (String)messageItem.get('type') == 'message' && messageItem.get('subtype') == null){
-        //             if(messageItem.get('edited') != null){
-        //                 Map<String, Object> editedMap = (Map<String, Object>)System.JSON.deserializeUntyped(System.JSON.serialize(messageItem.get('edited')));
-        //                 parsedMessage.editedTs = (String)editedMap.get('ts');
-        //                 parsedMessage.isEdited = true;
-        //             }
-        //             parsedMessage.textMessage = (String)messageItem.get('text');
-        //             parsedMessage.ts = (String)messageItem.get('ts');
-        //             parsedMessage.slackUserId = (String)messageItem.get('user');
-        //             if(parsedMessage.textMessage != '' && parsedMessage.textMessage != null){
-        //                 messages.add(parsedMessage);
-        //             }
-        //         }
-        //     }       
-        // return messages;
     }
 
 }

@@ -1,32 +1,34 @@
 @isTest
 public with sharing class SaveSlackMessageHandlerTest {
 
-
     @isTest
     public static void testAddMembersAndMessages(){
         Test.startTest();
-            List<SlackMessageObjects.SlackUser> allUser = new List<SlackMessageObjects.SlackUser>();
-            SlackMessageObjects.SlackUser newSlackUser = new SlackMessageObjects.SlackUser();
-            newSlackUser.salesforceUserId='0058c00000CHYHuAAP';
-            newSlackUser.slackUserId='12';
-            newSlackUser.salesforceUserId='0058c00000CHYHqWAA';
-            newSlackUser.slackUserId='10';
+        Test.setMock(HttpCalloutMock.class, new SaveSlackMock());
+        List<SlackMessageObjects.SlackUser> allUser = new List<SlackMessageObjects.SlackUser>();
+        SlackMessageObjects.SlackUser newSlackUser1 = new SlackMessageObjects.SlackUser();
+        SlackMessageObjects.SlackUser newSlackUser2 = new SlackMessageObjects.SlackUser();
+        newSlackUser1.salesforceUserId='0058c00000CHYHuAAP';
+        newSlackUser1.slackUserId='0';
 
-            String token = '{"tokens":[{"slackUserId":"U03A8GA3BGC","accessToken":"xoxp-3331607868951-3348554113556-3579730000528-0bab6fe771a836e8fb95f3de4ecb004e","workspace":"SavingPlayground"}]}';
-            SlackMessageObjects.UserConversationPair conversationsPair = new  SlackMessageObjects.UserConversationPair();
+        newSlackUser2.salesforceUserId='0058c00000CHYHqWAA';
+        newSlackUser2.slackUserId='2';
 
-            allUser.add(newSlackUser);
+        String token = '{"tokens":[{"slackUserId":"U03A8GA3BGC","accessToken":"xoxp-3331607868951-3348554113556-3579730000528-0bab6fe771a836e8fb95f3de4ecb004e","workspace":"SavingPlayground"}]}';
+        SlackMessageObjects.UserConversationPair conversationsPair = new  SlackMessageObjects.UserConversationPair();
 
+        allUser.add(newSlackUser1);
+        allUser.add(newSlackUser2);
 
-            String[] conversations = new String[2];
-            conversations[0]='1';
-            conversations[1]='3';
-            
-            conversationsPair.conversationIds = conversations;
-            conversationsPair.userToken = token;
+        String[] conversations = new String[2];
+        conversations[0]='1';
+        conversations[1]='3';
+        
+        conversationsPair.conversationIds = conversations;
+        conversationsPair.userToken = token;
 
-            List<SlackMessageObjects.FullConversation> slackConversationsToSave = SaveSlackMessageHandler.addMembersAndMessages(conversationsPair,allUser,token);
-            System.assertEquals(slackConversationsToSave.size(), 2, 'the size is not equals to the conversationIds');
+        List<SlackMessageObjects.FullConversation> slackConversationsToSave = SaveSlackMessageHandler.addMembersAndMessages(conversationsPair,allUser,token);
+        System.assertEquals(slackConversationsToSave.size(), 2, 'the size is not equals to the conversationIds');
         Test.stopTest();
     }
 
