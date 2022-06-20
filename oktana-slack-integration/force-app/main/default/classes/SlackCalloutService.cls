@@ -143,7 +143,7 @@ public with sharing class SlackCalloutService {
 
         List<SlackMessageObjects.SlackUser> slackUsers = new List<SlackMessageObjects.SlackUser>();
 
-        String endpoint = this.API_URL + 'users.list' + '?token=' + token + '&team_id=' + workspaceId;
+        String endpoint = API_URL + 'users.list' + '?token=' + token + '&team_id=' + workspaceId;
         Http http = new Http();
         Map<String, String> headers = new Map<String, String>();
         headers.put('Accept', 'application/x-www-form-urlencoded');
@@ -156,13 +156,14 @@ public with sharing class SlackCalloutService {
         if(usersResults.containsKey('error')){
             return null;
         }else{
-            SlackMessageObjects.SlackUser slackUser = new SlackMessageObjects.SlackUser();
+            
             List<Object> usersListObject = (List<Object> )JSON.deserializeUntyped(System.JSON.serialize(usersResults.get('members')));
             for(Object userObj : usersListObject){
                 Map<String, Object> userMap = (Map<String, Object>)System.JSON.deserializeUntyped(System.JSON.serialize(userObj));
                 String userId = (String)userMap.get('id');
                 Map<String, Object> userProfileMap = (Map<String, Object>)System.JSON.deserializeUntyped(System.JSON.serialize(userMap.get('profile')));
                 String email = (String)userProfileMap.get('email');
+                SlackMessageObjects.SlackUser slackUser = new SlackMessageObjects.SlackUser();
                 slackUser.slackUserID = userId;
                 slackUser.email = email;
                 slackUsers.add(slackUser);

@@ -1,5 +1,6 @@
 public with sharing class SlackLoadUsers {
     
+    @Future(callout=true)
     public static void loadSlackUsers(){
 
         //fetch tokens
@@ -34,8 +35,7 @@ public with sharing class SlackLoadUsers {
             u.SlackID__c = getSlackIdByEmail(slackUsers, u.Email);
         }
 
-        if(User.SObjectType.getDescribe().isUpdateable() && Schema.SObjectType.User.fields.SlackID__c.isUpdateable() &&
-            Schema.SObjectType.User.fields.Id.isUpdateable()){
+        if(User.SObjectType.getDescribe().isUpdateable() && Schema.SObjectType.User.fields.SlackID__c.isUpdateable()){
                 update foundUsers;
         }
         
