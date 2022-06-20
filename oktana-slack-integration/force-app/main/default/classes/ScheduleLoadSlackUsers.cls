@@ -6,7 +6,7 @@ global with sharing class ScheduleLoadSlackUsers implements Schedulable, Databas
 
     global void execute(SchedulableContext sc) {
 
-		//SlackLoadUsers.loadSlackUsers();
+		    SlackLoadUsers.loadSlackUsers();
 		
 	}
 }
