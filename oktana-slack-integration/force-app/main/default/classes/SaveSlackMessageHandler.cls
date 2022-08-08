@@ -2,25 +2,26 @@ public with sharing class SaveSlackMessageHandler {
     public class SlackSavingMessageException extends Exception {
 
     }
-    public static List<SlackMessageObjects.FullConversation> addMembersAndMessages( SlackMessageObjects.UserConversationPair pair, 
-                                                                                List<SlackMessageObjects.SlackUser> allUsers, String userToken ){
+    public static List<SlackMessageObjects.FullConversation> addMembersAndMessages(List<String> conversationsIds, 
+                                                                                Map<String, User> usersMap, String userToken ){
         List<SlackMessageObjects.FullConversation> results = new List<SlackMessageObjects.FullConversation>();
             
-        for(String conversationId : pair.conversationIds) {
+        for(String conversationId : conversationsIds) {
             SlackMessageObjects.FullConversation conversationData = new SlackMessageObjects.FullConversation();
 
             conversationData.conversationId = conversationId;
             conversationData.errorLogs = new List<Debug_Log__c>();
 
-            SlackMessageObjects.MemberErrorWrapper memberWrapper = SlackCalloutService.getConversationMembers(conversationId, allUsers, userToken);
+            SlackMessageObjects.MemberErrorWrapper memberWrapper = SlackCalloutService.getConversationMembers(conversationId, usersMap, userToken);
             conversationData.members = memberWrapper.members;
-            if(memberWrapper.errorLog!=null){
+            if(memberWrapper.errorLog != null) {
                 conversationData.errorLogs.add(memberWrapper.errorLog);
             }
             
 
-            if(conversationData.members.size() > 1){
-                conversationData.messages = SlackCalloutService.getMessages(pair.userToken,conversationId);
+            if(conversationData.members.size() > 1) {
+                conversationData.messages = SlackCalloutService.getMessages(userToken, conversationId, usersMap);
+                
                 if(conversationData.messages != null && conversationData.messages.size() > 0){
                     results.add(conversationData);
                 }      
@@ -38,7 +39,6 @@ public with sharing class SaveSlackMessageHandler {
         String workspaceId = currentWorkspace.SlackWorkspaceId__c;
 
         RecordType slackConversationRecordType = getSlackConversationRecordType();
-
         List<String> listOfIds = new List<String>();
 
         List<Debug_log__c> totalDebugLogs =  new List<Debug_log__c>();
@@ -77,7 +77,7 @@ public with sharing class SaveSlackMessageHandler {
         for(SlackMessageObjects.FullConversation slackConversation : slackConvs){
             //Checking if conversation isnt already saved
             Conversation__c tokConversation = null;
-            Conversation__c foundConversation = findSlackConversation(existingConversationsOnSF,slackConversation.conversationId);
+            Conversation__c foundConversation = findSlackConversation(existingConversationsOnSF, slackConversation.conversationId);
 
             if(foundConversation == null){ // The conversation doesnt exist
                 conversationNoExist(tokConversation, slackConversation, slackConversationRecordType, workspaceID, communityId);         
@@ -148,8 +148,8 @@ public with sharing class SaveSlackMessageHandler {
         conversation.Slack_Conversation_Id__c = slackConversation.conversationId;
         conversation.Slack_Workspace_Id__c = workspaceID;
         conversation.Members__c = String.join(slackConversation.members, '');
-        conversation.RecordType = slackConversationRecordType;
-
+        conversation.RecordTypeId = slackConversationRecordType.Id;
+        
         //process first message
         ConnectApi.FeedElement message = ConnectAPIController.postFeedDirectMessage(communityID, slackConversation.messages[0].textMessage, slackConversation.members, false);
         conversation.Message_timestamps__c = slackConversation.messages[0].ts;
@@ -172,7 +172,7 @@ public with sharing class SaveSlackMessageHandler {
             while((i / ChatterConstant.SLACK_MESSAGES_LIMIT ) >= 1){
                 Integer beginning = i - ChatterConstant.SLACK_MESSAGES_LIMIT;
                 Integer ending = i;
-                List<SlackMessageObjects.SlackMessage> messages = copySlackMessagesList(slackConversation.messages,beginning,ending);
+                List<SlackMessageObjects.SlackMessage> messages = copySlackMessagesList(slackConversation.messages, beginning, ending);
                 SaveSlackMessageQueueable slackMessageQueueable = new SaveSlackMessageQueueable(messages, communityID, message.id, conversation);
                 System.enqueueJob(slackMessageQueueable);
                 i -= ChatterConstant.SLACK_MESSAGES_LIMIT;
@@ -185,7 +185,7 @@ public with sharing class SaveSlackMessageHandler {
                     System.enqueueJob(lastSlackMessageQueueable);
                 }
             }
-        }else{
+        } else {
             SaveSlackMessageQueueable slackMessageQueueable = new SaveSlackMessageQueueable(slackConversation.messages, communityID, message.id, conversation);
             System.enqueueJob(slackMessageQueueable);
         }
@@ -199,7 +199,7 @@ public with sharing class SaveSlackMessageHandler {
             while((i / ChatterConstant.SLACK_MESSAGES_LIMIT ) >= 1){
                 Integer beginning = i - ChatterConstant.SLACK_MESSAGES_LIMIT;
                 Integer ending = i;
-                List<SlackMessageObjects.SlackMessage> messages = copySlackMessagesList(slackConversation.messages,beginning,ending);
+                List<SlackMessageObjects.SlackMessage> messages = copySlackMessagesList(slackConversation.messages, beginning, ending);
                 SaveSlackMessageQueueable slackMessageQueueable = new SaveSlackMessageQueueable(messages, communityID, tokConversation.Conversation_Id__c, tokConversation);
                 System.enqueueJob(slackMessageQueueable);
                 i -= ChatterConstant.SLACK_MESSAGES_LIMIT;

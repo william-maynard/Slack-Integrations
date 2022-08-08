@@ -1,11 +1,11 @@
 public with sharing class SaveSlackMessageQueueable implements Queueable {
-    private List<SlackMessageObjects.SlackMessage> messagesList;
+    private List<SlackMessageObjects.SlackMessage> messages;
     private String communityID;
     private String feedItemID;
     private Conversation__c slackConversation;
 
-    public SaveSlackMessageQueueable(List<SlackMessageObjects.SlackMessage> messagesList, String communityID, String feedItemID, Conversation__c slackConversation) {
-        this.messagesList = messagesList;
+    public SaveSlackMessageQueueable(List<SlackMessageObjects.SlackMessage> messages, String communityID, String feedItemID, Conversation__c slackConversation) {
+        this.messages = messages;
         this.communityID = communityID;
         this.feedItemID = feedItemID;
         this.slackConversation = slackConversation;
@@ -19,15 +19,15 @@ public with sharing class SaveSlackMessageQueueable implements Queueable {
         newLog.Log_Body__c = slackConversation.Slack_Conversation_Id__c;
         insert newLog;
         
-
-        for( Integer i = 0; i < this.messagesList.size(); i++ ){
-
-            if( isNewTimestamp(this.messagesList[i].ts) ){
-                ConnectAPIController.updateFeedDirectMessage(this.communityID, this.feedItemID, this.messagesList[i].textMessage);
-                slackConversation.Message_Timestamps__c = SlackUtils.getNewMessageTimestampField(slackConversation.Message_timestamps__c, this.messagesList[i].ts);
-            }else if( isEditedAndNewTimestamp(this.messagesList[i]) ){
-                ConnectAPIController.updateFeedDirectMessage(this.communityID, this.feedItemID, this.messagesList[i].textMessage);
-                slackConversation.Message_Timestamps__c = SlackUtils.getNewMessageTimestampField(slackConversation.Message_timestamps__c, this.messagesList[i].editedTs);
+        String text = '';
+        for(SlackMessageObjects.SlackMessage message : this.messages){
+            text = (message.salesforceUserId == null ? '@unknown' : '@'+message.salesforceUserId) + ' ' + message.textMessage;
+            if( isNewTimestamp(message.ts) ){
+                ConnectAPIController.updateFeedDirectMessage(this.communityID, this.feedItemID, text);
+                slackConversation.Message_Timestamps__c = SlackUtils.getNewMessageTimestampField(slackConversation.Message_timestamps__c, message.ts);
+            }else if( isEditedAndNewTimestamp(message) ){
+                ConnectAPIController.updateFeedDirectMessage(this.communityID, this.feedItemID, text);
+                slackConversation.Message_Timestamps__c = SlackUtils.getNewMessageTimestampField(slackConversation.Message_timestamps__c, message.editedTs);
             }
         }
         update slackConversation;

@@ -19,15 +19,10 @@ public with sharing class SaveSlackMessageScheduleHandler {
         Debug_Log__c slackDebug2 = new Debug_Log__c();
         slackDebug2.Name = 'SaveSlackMessageScheduleHandler-saveAllSlackConversations-Line 17';
         slackDebug2.Description__c = 'The amount of ' + userConversationPair.conversationIds.size() + ' conversations were fetched, and those are the following:';
-
-        slackDebug2.Log_Body__c = '';
-        
-        for(String conversationID : userConversationPair.conversationIds){
-            slackDebug2.Log_Body__c =  slackDebug2.Log_Body__c + conversationID + ', ';
-        }
+        slackDebug2.Log_Body__c = String.join(userConversationPair.conversationIds, ', ');
         errorLogs.add(slackDebug2);
 
-        SlackService.getSlackConversationsInformationAndSave(userConversationPair, token, userConversationPair.nextCursor, errorLogs);
+        SlackService.getSlackConversationsInformationAndSave(userConversationPair.conversationIds, token, userConversationPair.nextCursor, errorLogs);
 
     }
 }

@@ -25,9 +25,8 @@ public with sharing class SaveSlackMessageHandlerTest {
         conversations[1]='3';
         
         conversationsPair.conversationIds = conversations;
-        conversationsPair.userToken = token;
 
-        List<SlackMessageObjects.FullConversation> slackConversationsToSave = SaveSlackMessageHandler.addMembersAndMessages(conversationsPair,allUser,token);
+        List<SlackMessageObjects.FullConversation> slackConversationsToSave = SaveSlackMessageHandler.addMembersAndMessages(conversationsPair, allUser, token);
         System.assertEquals(slackConversationsToSave.size(), 2, 'the size is not equals to the conversationIds');
         Test.stopTest();
     }

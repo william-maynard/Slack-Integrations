@@ -42,7 +42,7 @@ public with sharing class SlackCalloutServiceTest {
 
         Test.startTest();
         Test.setMock(HttpCalloutMock.class, new SaveSlackMock());
-        SlackMessageObjects.MemberErrorWrapper slackMsgs = SlackCalloutService.getConversationMembers('conversationId','convType', users,'tokens');
+        SlackMessageObjects.MemberErrorWrapper slackMsgs = SlackCalloutService.getConversationMembers('conversationId', users,'tokens');
         Test.stopTest();
 
         System.assertEquals(slackMsgs.members.size(), 0);
@@ -63,7 +63,7 @@ public with sharing class SlackCalloutServiceTest {
 
         Test.startTest();
         Test.setMock(HttpCalloutMock.class, new SaveSlackMock());
-        SlackMessageObjects.MemberErrorWrapper slackMsgs = SlackCalloutService.getConversationMembers('conversationId','convType', users,'token');
+        SlackMessageObjects.MemberErrorWrapper slackMsgs = SlackCalloutService.getConversationMembers('conversationId', users, 'token');
         Test.stopTest();
 
         System.assertEquals(slackMsgs.members.size(), 2);
@@ -78,7 +78,7 @@ public with sharing class SlackCalloutServiceTest {
 
         Test.startTest();
         Test.setMock(HttpCalloutMock.class, new SaveSlackMock());
-        SlackMessageObjects.MemberErrorWrapper slackMsgs = SlackCalloutService.getConversationMembers('conversationId','convType', users,'error_mock');
+        SlackMessageObjects.MemberErrorWrapper slackMsgs = SlackCalloutService.getConversationMembers('conversationId', users, 'error_mock');
         Test.stopTest();
 
         System.assertEquals(slackMsgs, null);
@@ -154,23 +154,6 @@ public with sharing class SlackCalloutServiceTest {
 
         System.assertEquals(sm.size(), 2);
 
-    }
-
-    @IsTest
-    static void setRequestTest() {
-        HttpRequest response = new HttpRequest();
-        response.setEndpoint('https://slack.com/api/conversations.list?token=xoxp-3331607868951-3348554113556-3579730000528-0bab6fe771a836e8fb95f3de4ecb004e&types=public_channel,private_channel,im&limit=301');
-        response.setMethod('POST');
-
-        String token = 'xoxp-3331607868951-3348554113556-3579730000528-0bab6fe771a836e8fb95f3de4ecb004e';
-        Map<String, String> headers = new Map<String, String>();
-        headers.put('Accept', 'application/x-www-form-urlencoded');
-        headers.put('Content-Type','application/x-www-form-urlencoded');
-        String endpoint = 'https://slack.com/api/conversations.list' + '?token=' + token + '&types=public_channel,private_channel,im&limit='+ 30 + 1 ;
-
-        HttpRequest req = SlackCalloutService.setRequest('POST', headers , endpoint);	
-
-        System.assertNotEquals(response, req);
     }
 
     @IsTest 
