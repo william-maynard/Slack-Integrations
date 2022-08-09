@@ -7,9 +7,9 @@ global with sharing class SaveSlackMessageScheduleTrigger {
         //System.schedule('Saving Slack Messages 1', '0 45 * * * ?', savingScheduler);
 
         SaveSlackMessageScheduler savingScheduler = new SaveSlackMessageScheduler();
-        Datetime dateTime = Datetime.now().addMinutes(1);
-        String cron = dateTime.format('ss mm HH dd MM ? yyyy');
-        String jobId = System.schedule('Saving Slack Messages Trigger ' + dateTime.getTime(), cron, savingScheduler);
+        Datetime dateDT = Datetime.now().addMinutes(1);
+        String cron = dateDT.format('ss mm HH dd MM ? yyyy');
+        String jobId = System.schedule('Saving Slack Messages Trigger ' + dateDT.getTime(), cron, savingScheduler);
         return jobId;
     }
 }

@@ -21,7 +21,6 @@ public with sharing class SaveSlackMessageHandler {
 
             if(conversationData.members.size() > 1) {
                 conversationData.messages = SlackCalloutService.getMessages(userToken, conversationId, usersMap);
-                
                 if(conversationData.messages != null && conversationData.messages.size() > 0){
                     results.add(conversationData);
                 }      
@@ -48,15 +47,14 @@ public with sharing class SaveSlackMessageHandler {
         logError.Description__c = 'The conversations to be saved in this queueable are:';
 
         for(SlackMessageObjects.FullConversation slackConversation : slackConvs){
+            if(slackConversation.errorLogs != null && slackConversation.errorLogs.size() > 0) {
+                totalDebugLogs.addAll(slackConversation.errorLogs);
+            }
             listOFIds.add(slackConversation.conversationId);
         }
         logError.Log_Body__c = String.join(listOFIds, ',');
 
         totalDebugLogs.add(logError);
-
-        for(Integer i=0;i<slackConvs.size();i++){
-            totalDebugLogs.addAll(slackConvs[i].errorLogs);
-        }
 
         try {
             insert totalDebugLogs;

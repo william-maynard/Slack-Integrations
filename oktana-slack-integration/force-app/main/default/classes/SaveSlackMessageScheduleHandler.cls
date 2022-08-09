@@ -5,7 +5,6 @@ public with sharing class SaveSlackMessageScheduleHandler {
 
         String token = SlackService.getSlackToken();
         Integer jobLimit = 40 - Limits.getQueueableJobs();
-
         List<Debug_Log__c> errorLogs = new List<Debug_Log__c>();
 
         Debug_Log__c slackDebug1 = new Debug_Log__c();

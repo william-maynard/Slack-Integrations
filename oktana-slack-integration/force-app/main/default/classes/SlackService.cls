@@ -11,14 +11,12 @@ public with sharing class SlackService {
                             WHERE SlackID__c != NULL 
                             WITH SECURITY_ENFORCED];         
         }
-        System.debug('users');
-        System.debug(users);
+
         Map<String, User> usersMap = new Map<String, User>();
         for(User user : users) {
             usersMap.put(user.SlackID__c, user);
         }
-        System.debug('usersMap');
-        System.debug(usersMap);
+
         List<SlackMessageObjects.SlackUser> allUsers = SlackUtils.mapSlackIdsToAllUsers(users); 
     
         List<SlackMessageObjects.FullConversation> slackConversationsToSave = SaveSlackMessageHandler.addMembersAndMessages(conversationsIds, usersMap, token);
@@ -46,5 +44,9 @@ public with sharing class SlackService {
         return [SELECT UserId__c, Token__c 
                 FROM Token_Custom_Metadata__mdt 
                 LIMIT 1].Token__c;
+    }
+
+    public static String getSlackBotToken() {
+        return [SELECT Bot_Token__c FROM Token_Custom_Metadata__mdt LIMIT 1].Bot_Token__c;
     }
 }

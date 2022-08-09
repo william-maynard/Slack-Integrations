@@ -72,7 +72,7 @@ public with sharing class OktanaBirthdayService {
     
     @future(callout=true)
     public static void sayBirthdayOnSlack(){
-        String token = SlackService.getSlackToken();
+        String token = SlackService.getBotSlackToken();
         // get custom setting
         SlackWorkspace__c  currentWorkspace = SlackWorkspace__c.getValues('CurrentWorkspace');
         Map<Type, List<User>> userMap = getUsers();

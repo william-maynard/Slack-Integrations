@@ -57,13 +57,14 @@ public with sharing class SlackCalloutService {
         HttpResponse response = http.send(request);
         //We need to set nextcursor for recursive structure of code
         Map<String, Object> result = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
+        
         if(result.containsKey('error')){
             return null;
         }
-
+        
         pair.conversationIds = getConversationIds(result);
         pair.nextCursor = getNextCursor(result);
-        
+
         return pair;
     }
 
@@ -84,6 +85,7 @@ public with sharing class SlackCalloutService {
     private static String[] getConversationIds(Map<String, Object> conversationResults){
         String[] conversationids = new String[]{};
         List<Object> channels = (List<Object> )JSON.deserializeUntyped(System.JSON.serialize(conversationResults.get('channels')));
+
         for(Object channelObject : channels){
             Map<String, Object> channelItem = (Map<String, Object>)System.JSON.deserializeUntyped(System.JSON.serialize(channelObject));                    
             conversationids.add((String)channelItem.get('id'));
@@ -159,7 +161,7 @@ public with sharing class SlackCalloutService {
 
         Map<String, Object> result = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
         Boolean ok = (Boolean) result.get('ok');
-        
+       
         if(!ok){
             return null;
         }

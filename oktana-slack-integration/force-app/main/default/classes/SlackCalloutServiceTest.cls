@@ -16,7 +16,7 @@ public with sharing class SlackCalloutServiceTest {
     @isTest 
     static void getConversationPairsErrorTest() {
         Test.startTest();
-        Test.setMock(HttpCalloutMock.class, new SaveSlackMock());
+        Test.setMock(HttpCalloutMock.class, new SaveSlackMock('error_mock'));
         SlackMessageObjects.UserConversationPair convPair = SlackCalloutService.getConversationPairs('error_mock', 'nextcursor', CONVERSATION_PAIR_LIMIT_SIZE);
         Test.stopTest();
         System.assertEquals(convPair, null);
@@ -24,10 +24,12 @@ public with sharing class SlackCalloutServiceTest {
 
     @IsTest 
     static void getMessagesTest(){
+        Map<String, User> usersMap = new Map<String, User>();
+        usersMap.put('ABC123', new User(Id = '0058c00000CHYHuAAP', SlackID__c = 'ABC123'));
         //setup();
         Test.startTest();
         Test.setMock(HttpCalloutMock.class, new SaveSlackMock());
-        List<SlackMessageObjects.SlackMessage> slackMsgs = SlackCalloutService.getMessages('token','conversationId');
+        List<SlackMessageObjects.SlackMessage> slackMsgs = SlackCalloutService.getMessages('token','conversationId', usersMap);
         Test.stopTest();
 
         System.assertNotEquals(slackMsgs, null);
@@ -35,14 +37,11 @@ public with sharing class SlackCalloutServiceTest {
 
     @IsTest 
     static void getConversationMembersInsufficientTest(){
-        SlackMessageObjects.SlackUser user = new SlackMessageObjects.SlackUser();
-        List<SlackMessageObjects.SlackUser> users = new List<SlackMessageObjects.SlackUser>();
-        user.slackUserId = '0';
-        users.add(user);
+        Map<String, User> usersMap = new Map<String, User>();
 
         Test.startTest();
         Test.setMock(HttpCalloutMock.class, new SaveSlackMock());
-        SlackMessageObjects.MemberErrorWrapper slackMsgs = SlackCalloutService.getConversationMembers('conversationId', users,'tokens');
+        SlackMessageObjects.MemberErrorWrapper slackMsgs = SlackCalloutService.getConversationMembers('conversationId', usersMap,'tokens');
         Test.stopTest();
 
         System.assertEquals(slackMsgs.members.size(), 0);
@@ -50,20 +49,13 @@ public with sharing class SlackCalloutServiceTest {
 
     @IsTest 
     static void getConversationMembersSufficientTest(){
-        List<SlackMessageObjects.SlackUser> users = new List<SlackMessageObjects.SlackUser>();
-        SlackMessageObjects.SlackUser user = new SlackMessageObjects.SlackUser();
-        user.slackUserId = '0';
-        user.salesforceUserId = 'id1';
-        SlackMessageObjects.SlackUser user2 = new SlackMessageObjects.SlackUser();
-        user2.slackUserId = '2';
-        user2.salesforceUserId = 'id2';
-        
-        users.add(user);
-        users.add(user2);
+        Map<String, User> usersMap = new Map<String, User>();
+        usersMap.put('ABC123', new User(Id = '0058c00000CHYHuAAP', SlackID__c = 'ABC123'));
+        usersMap.put('ABC456', new User(Id = '0058c00000CHYHqWAA', SlackID__c = 'ABC456'));
 
         Test.startTest();
         Test.setMock(HttpCalloutMock.class, new SaveSlackMock());
-        SlackMessageObjects.MemberErrorWrapper slackMsgs = SlackCalloutService.getConversationMembers('conversationId', users, 'token');
+        SlackMessageObjects.MemberErrorWrapper slackMsgs = SlackCalloutService.getConversationMembers('conversationId', usersMap, 'token');
         Test.stopTest();
 
         System.assertEquals(slackMsgs.members.size(), 2);
@@ -71,14 +63,12 @@ public with sharing class SlackCalloutServiceTest {
 
     @IsTest 
     static void getConversationMembersErrorTest(){
-        SlackMessageObjects.SlackUser user = new SlackMessageObjects.SlackUser();
-        List<SlackMessageObjects.SlackUser> users = new List<SlackMessageObjects.SlackUser>();
-        user.slackUserId = '0';
-        users.add(user);
+        Map<String, User> usersMap = new Map<String, User>();
+        usersMap.put('ABC123', new User(Id = '0058c00000CHYHuAAP', SlackID__c = 'ABC123'));
 
         Test.startTest();
-        Test.setMock(HttpCalloutMock.class, new SaveSlackMock());
-        SlackMessageObjects.MemberErrorWrapper slackMsgs = SlackCalloutService.getConversationMembers('conversationId', users, 'error_mock');
+        Test.setMock(HttpCalloutMock.class, new SaveSlackMock('error_mock'));
+        SlackMessageObjects.MemberErrorWrapper slackMsgs = SlackCalloutService.getConversationMembers('conversationId', usersMap, 'error_mock');
         Test.stopTest();
 
         System.assertEquals(slackMsgs, null);
@@ -129,9 +119,11 @@ public with sharing class SlackCalloutServiceTest {
 
         Map<String, Object> results = (Map<String, Object>)JSON.deserializeUntyped(resp.getBody());
         List<Object> messagesListObject = (List<Object> )JSON.deserializeUntyped(System.JSON.serialize(results.get('messages')));
+        Map<String, User> usersMap = new Map<String, User>();
+        usersMap.put('ABC123', new User(Id = '0058c00000CHYHuAAP', SlackID__c = 'ABC123'));
 
         Test.startTest();
-        List<SlackMessageObjects.SlackMessage> sm = SlackCalloutService.setMessages(messagesListObject);
+        List<SlackMessageObjects.SlackMessage> sm = SlackCalloutService.setMessages(messagesListObject, usersMap);
         Test.stopTest();
 
         System.assertEquals(sm.size(), 2);
@@ -147,9 +139,11 @@ public with sharing class SlackCalloutServiceTest {
 
         Map<String, Object> results = (Map<String, Object>)JSON.deserializeUntyped(resp.getBody());
         List<Object> messagesListObject = (List<Object> )JSON.deserializeUntyped(System.JSON.serialize(results.get('messages')));
+        Map<String, User> usersMap = new Map<String, User>();
+        usersMap.put('ABC123', new User(Id = '0058c00000CHYHuAAP', SlackID__c = 'ABC123'));
 
         Test.startTest();
-        List<SlackMessageObjects.SlackMessage> sm = SlackCalloutService.setMessages(messagesListObject);
+        List<SlackMessageObjects.SlackMessage> sm = SlackCalloutService.setMessages(messagesListObject, usersMap);
         Test.stopTest();
 
         System.assertEquals(sm.size(), 2);
