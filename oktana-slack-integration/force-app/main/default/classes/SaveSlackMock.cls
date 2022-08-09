@@ -1,13 +1,21 @@
 public with sharing class SaveSlackMock implements HttpCalloutMock{
  
     static final Integer CONVERSATION_PAIR_LIST_SIZE = 40;
-    
+    private String token;
+    public SaveSlackMock() {
+
+    }
+
+    public SaveSlackMock(String token) {
+        this.token = token;
+    }
+
     public HTTPResponse respond(HTTPRequest req) {
-        if (req.getEndpoint().startsWithIgnoreCase('https://slack.com/api/conversations.list?token=error_mock')) {
+        if (req.getEndpoint().startsWithIgnoreCase('https://slack.com/api/conversations.list') && this.token == 'error_mock') {
             HttpResponse resp = new HttpResponse();
             resp.setStatusCode(200);
-            resp.setStatus('error');
-            resp.setBody('{"error": true}');
+            resp.setStatus('Success');
+            resp.setBody('{"ok": false, "error": "Error"}');
             return resp;
         } else if (req.getEndpoint().startsWithIgnoreCase('https://slack.com/api/conversations.list')) {
 
@@ -37,18 +45,18 @@ public with sharing class SaveSlackMock implements HttpCalloutMock{
             resp.setBody('{"ok":true,"messages":[{"type":"message","user":"U012AB3CDE","text":"I find you punny and would like to smell your nose letter","ts":"1512085950.000216"},{"type":"message","user":"U061F7AUR","text":"What, you want to smell my shoes better?","ts":"1512104434.000490"}],"has_more":true,"pin_count":0,"response_metadata":{"next_cursor":"bmV4dF90czoxNTEyMDg1ODYxMDAwNTQz"}}');
             return resp;
         }
-        else if (req.getEndpoint().startsWithIgnoreCase('https://slack.com/api/conversations.members?token=error_mock')) {
+        else if (req.getEndpoint().startsWithIgnoreCase('https://slack.com/api/conversations.members') && this.token == 'error_mock') {
             HttpResponse resp = new HttpResponse();
             resp.setStatusCode(200);
             resp.setStatus('Success');
-            resp.setBody('{"error": true}');
+            resp.setBody('{"ok": false, "error": "Error"}');
             return resp;
         }
         else if (req.getEndpoint().startsWithIgnoreCase('https://slack.com/api/conversations.members')) {
             HttpResponse resp = new HttpResponse();
             resp.setStatusCode(200);
             resp.setStatus('Success');
-            resp.setBody('{"ok":true, "members":["0","2","21"],"response_metadata":{"next_cursor": "e3VzZXJfaWQ6IFcxMjM0NTY3fQ=="}}');
+            resp.setBody('{"ok":true, "members":["ABC123","ABC456","ABC789"],"response_metadata":{"next_cursor": "e3VzZXJfaWQ6IFcxMjM0NTY3fQ=="}}');
             return resp;
         }
         else {

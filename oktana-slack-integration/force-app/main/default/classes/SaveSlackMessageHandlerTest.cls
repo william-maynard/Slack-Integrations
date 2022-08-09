@@ -5,91 +5,180 @@ public with sharing class SaveSlackMessageHandlerTest {
     public static void testAddMembersAndMessages(){
         Test.startTest();
         Test.setMock(HttpCalloutMock.class, new SaveSlackMock());
-        List<SlackMessageObjects.SlackUser> allUser = new List<SlackMessageObjects.SlackUser>();
-        SlackMessageObjects.SlackUser newSlackUser1 = new SlackMessageObjects.SlackUser();
-        SlackMessageObjects.SlackUser newSlackUser2 = new SlackMessageObjects.SlackUser();
-        newSlackUser1.salesforceUserId='0058c00000CHYHuAAP';
-        newSlackUser1.slackUserId='0';
+        Map<String, User> usersMap = new Map<String, User>();
+        usersMap.put('ABC123', new User(Id = '0058c00000CHYHuAAP', SlackID__c = 'ABC123'));
+        usersMap.put('ABC456', new User(Id = '0058c00000CHYHqWAA', SlackID__c = 'ABC456'));
 
-        newSlackUser2.salesforceUserId='0058c00000CHYHqWAA';
-        newSlackUser2.slackUserId='2';
 
         String token = '{"tokens":[{"slackUserId":"U03A8GA3BGC","accessToken":"xoxp-3331607868951-3348554113556-3579730000528-0bab6fe771a836e8fb95f3de4ecb004e","workspace":"SavingPlayground"}]}';
         SlackMessageObjects.UserConversationPair conversationsPair = new  SlackMessageObjects.UserConversationPair();
 
-        allUser.add(newSlackUser1);
-        allUser.add(newSlackUser2);
+        String[] conversationsIds = new String[]{'1','2'};        
 
-        String[] conversations = new String[2];
-        conversations[0]='1';
-        conversations[1]='3';
-        
-        conversationsPair.conversationIds = conversations;
-        conversationsPair.userToken = token;
-
-        List<SlackMessageObjects.FullConversation> slackConversationsToSave = SaveSlackMessageHandler.addMembersAndMessages(conversationsPair,allUser,token);
+        List<SlackMessageObjects.FullConversation> slackConversationsToSave = SaveSlackMessageHandler.addMembersAndMessages(conversationsIds, usersMap, token);
         System.assertEquals(slackConversationsToSave.size(), 2, 'the size is not equals to the conversationIds');
         Test.stopTest();
     }
 
 
-    @isTest
+    @isTest(SeeAllData=true)
     public static void testScheduleSaveConversations(){
-        List<SlackMessageObjects.FullConversation> convList = new List<SlackMessageObjects.FullConversation>();
-        SlackMessageObjects.FullConversation testConv = new SlackMessageObjects.FullConversation();
-        testConv.conversationId = 'convID';
 
-        convList.add(testConv);
+        Account account = new Account(Name = 'Test Account');
+        insert account;
+
+        Contact contact1 = createContact('Test', 'Contact 1', account.Id, null, false);
+        Contact contact2 = createContact('Test', 'Contact 2', account.Id, null, false);
+        List<Contact> contacts = new List<Contact>{contact1, contact2};
+        insert contacts;
+
+        User user1 = createCommunityUser(contacts[0], 'ABC123', false);
+        User user2 = createCommunityUser(contacts[1], 'ABC456', false);
+        List<User> users = new List<User>{user1, user2};
+        insert users;
+        
+        SlackMessageObjects.SlackMessage msg = new SlackMessageObjects.SlackMessage();
+        msg.textMessage = 'Text Msg 1';
+        msg.ts = '123456.789';
+        msg.isEdited = false;
+        msg.editedTS = 'editedTs';
+        msg.slackUserId = users[1].SlackID__c;
+        msg.salesforceUserId = users[1].Id;
+
+        List<SlackMessageObjects.FullConversation> conversations = new List<SlackMessageObjects.FullConversation>();
+        SlackMessageObjects.FullConversation testConversation = new SlackMessageObjects.FullConversation();
+        testConversation.conversationId = 'C0ABC123';
+        testConversation.messages = new List<SlackMessageObjects.SlackMessage>{msg};
+        testConversation.members = new String[]{users[0].Id, users[1].Id};
+        conversations.add(testConversation);
 
         Test.startTest();
-            String jobId = SaveSlackMessageHandler.scheduleSaveConversations(convList);
-
-            list<CronTrigger> ct = [SELECT Id,CronJobDetail.Name,CronJobDetail.Id,State FROM CronTrigger WHERE Id = :'08e8c00001SxASW'];
-            System.assertNotEquals(ct.size(), 1);
+            String jobId = SaveSlackMessageHandler.scheduleSaveConversations(conversations);
         
-            List<CronTrigger> ct2 = [SELECT Id, CronExpression, TimesTriggered, NextFireTime FROM CronTrigger WHERE Id = :jobId]; 
-            System.assertEquals(ct2.size(), 1);  
+            Integer cronTriggerCount = [SELECT COUNT()
+                                    FROM CronTrigger WHERE Id = :jobId]; 
+            System.assertEquals(1, cronTriggerCount, 'Expected one cron trigger');  
         Test.stopTest();        
     }
 
     @isTest(SeeAllData=true)
     public static void testSaveSlackConversations(){
-        List<SlackMessageObjects.FullConversation> convList = new List<SlackMessageObjects.FullConversation>();
+        
+        Account account = new Account(Name = 'Test Account');
+        insert account;
 
-        List<Debug_Log__c> error = new List<Debug_Log__c>();
-        error.add(new Debug_Log__c(Log_Body__c='error',Description__c='description'));
+        Contact contact1 = createContact('Test', 'Contact 1', account.Id, null, false);
+        Contact contact2 = createContact('Test', 'Contact 2', account.Id, null, false);
+        List<Contact> contacts = new List<Contact>{contact1, contact2};
+        insert contacts;
+
+        User user1 = createCommunityUser(contacts[0], 'ABC123', false);
+        User user2 = createCommunityUser(contacts[1], 'ABC456', false);
+        List<User> users = new List<User>{user1, user2};
+        insert users;
 
         List<SlackMessageObjects.SlackMessage> messages = new List<SlackMessageObjects.SlackMessage>();
-        for(Integer i=0; i<105; i++){
-            SlackMessageObjects.SlackMessage sm1 = new SlackMessageObjects.SlackMessage();
-            sm1.textMessage = 'Text';
-            sm1.ts = 'ts';
-            sm1.isEdited = false;
-            sm1.editedTS = 'editedTs';
-            sm1.slackUserId = 'slackUserId';
-    
-            messages.add(sm1);
+        for(Integer i = 1; i <= 55; i++){
+            SlackMessageObjects.SlackMessage msg = new SlackMessageObjects.SlackMessage();
+            msg.textMessage = 'Text Msg ' + i;
+            msg.ts = String.valueOf(i);
+            msg.isEdited = false;
+            msg.editedTS = 'editedTs';
+            msg.slackUserId = users[0].SlackID__c;
+            msg.salesforceUserId = users[0].Id;
+
+            messages.add(msg);
         }
 
-        List<String> memberString = new List<String>();
-        User us = [select id from user limit 1];
-        memberString.add(us.id);
+        for(Integer i = 55; i <= 110; i++){
+            SlackMessageObjects.SlackMessage msg = new SlackMessageObjects.SlackMessage();
+            msg.textMessage = 'Text Msg ' + i;
+            msg.ts = String.valueOf(i);
+            msg.isEdited = false;
+            msg.editedTS = 'editedTs';
+            msg.slackUserId = users[1].SlackID__c;
+            msg.salesforceUserId = users[1].Id;
 
-        SlackMessageObjects.FullConversation testConv = new SlackMessageObjects.FullConversation();
-        testConv.conversationId = 'convID';
-        testConv.messages = messages;
-        testConv.errorLogs = error; 
-        testConv.members = memberString;
-        
-        Conversation__c conversation = new Conversation__c(Conversation_Id__c='dfs333',Slack_Conversation_Id__c='T03HBSQKZEX');
-        insert conversation;
+            messages.add(msg);
+        }
 
-        convList.add(testConv);
+        List<SlackMessageObjects.FullConversation> conversations = new List<SlackMessageObjects.FullConversation>();
+        SlackMessageObjects.FullConversation testConversation = new SlackMessageObjects.FullConversation();
+        testConversation.conversationId = 'C0ABC123';
+        testConversation.messages = messages;
+        testConversation.members = new String[]{users[0].Id, users[1].Id};
+
+        conversations.add(testConversation);
         
         Test.startTest();      
-        	SaveSlackMessageHandler.saveSlackConversations(convList);    	
+        	SaveSlackMessageHandler.saveSlackConversations(conversations);    	
         Test.stopTest();
+        
+        List<Conversation__c> result = [
+            SELECT Id, Conversation_Id__c, Members__c
+            FROM Conversation__c
+            WHERE Slack_Conversation_Id__c = :testConversation.conversationId];
+        System.assert(result.size() > 0, 'There should be 1 conversation saved');
+        System.assertEquals(users[0].Id + '' + users[1].Id, result[0].Members__c, 
+            'Members field should be populated with users ids');
+
+        Integer msgResult = [SELECT COUNT() 
+                            FROM FeedComment 
+                            WHERE FeedItemId = :result[0].Conversation_Id__c];
+        System.assertEquals(messages.size(), msgResult);
     }
 
+    public static Contact createContact(String firstName, String lastName, 
+        String accountId, String recordTypeId, Boolean insertRecord) {
+        if (accountId == null) {
+          	Account acc = new Account(Name='Test Account');
+        	insert acc;
+            
+            accountId = acc.Id;
+        }
+
+        if (recordTypeId == null) {
+            recordTypeId = Schema.SObjectType.Contact.getRecordTypeInfosByName().get('Employee').getRecordTypeId();
+        }
+
+        Contact contact      = new Contact();
+        contact.FirstName    = firstName; 
+		contact.Lastname     = lastName; 
+        contact.AccountId    = accountId;
+        contact.RecordTypeId = recordTypeId;
+        contact.Email        = System.now().millisecond() + '@oktSlackTest.com';
+        if(insertRecord) {
+            insert contact;
+        }       
+        return contact;
+    }
+    
+    public static User createCommunityUser(Contact contact,
+        String slackId, Boolean insertRecord) {
+        Profile prof = [SELECT Id 
+                        FROM Profile 
+                        WHERE Name='Customer Community User' 
+                        LIMIT 1];
+        
+        User user = new User(
+            Alias 		      = contact.FirstName,
+            ContactId         = contact.Id,
+            Email 		      = contact.Email,
+            FirstName         = contact.FirstName,
+            LastName 	      = contact.LastName,
+            Username 	      = contact.Email,
+            LocaleSidKey      = 'en_US',
+            ProfileId         = prof.Id,
+            EmailEncodingKey  = 'UTF-8',
+            LanguageLocaleKey = 'en_US',
+            TimeZoneSidKey    = 'America/Los_Angeles',
+            SlackID__c        = slackId
+        );       
+        if(insertRecord) {
+            insert user;
+        }  
+        
+        return user;
+    }
 
 }

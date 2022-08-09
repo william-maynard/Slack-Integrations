@@ -20,7 +20,13 @@ private with sharing class SlackServiceTest {
 
     @isTest 
     static void TestGetSlackConversationsInformationAndSave() {
-
+        SlackWorkspace__c currentWorkspace = new SlackWorkspace__c();
+        currentWorkspace.Name = 'CurrentWorkspace';
+        currentWorkspace.SlackWorkspaceId__c = 'T0ABC123';
+        currentWorkspace.SlackWorkspaceLabel__c = 'Test Workspace';
+        currentWorkspace.channelGeneralId__c = 'C0ABC123';
+        insert currentWorkspace;
+        
         Test.startTest();
         //using saveAllSlackConversationsNoCursor test to work with slackservice test, since the former is a future method
         Test.setMock(HttpCalloutMock.class, new SaveSlackMock());
@@ -34,6 +40,12 @@ private with sharing class SlackServiceTest {
     @isTest(SeeAllData=true)
     private static void TestGetSlackToken() {
         String tokens = SlackService.getSlackToken();
+        System.assertEquals((tokens != ''), true);     
+    }
+
+    @isTest(SeeAllData=true)
+    private static void TestGetSlackBotToken() {
+        String tokens = SlackService.getSlackBotToken();
         System.assertEquals((tokens != ''), true);     
     }
 }

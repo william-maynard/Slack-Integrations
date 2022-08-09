@@ -1,23 +1,25 @@
 public with sharing class SlackService {
     
-    public static void getSlackConversationsInformationAndSave(SlackMessageObjects.UserConversationPair user_ConversationPair, String token, String nextCursor, List<Debug_Log__c> errorLogs){ //next cursor conversationIds
+    public static void getSlackConversationsInformationAndSave(List<String> conversationsIds, String token, String nextCursor, List<Debug_Log__c> errorLogs){ //next cursor conversationIds
     
-        List<String> convIds = user_ConversationPair.conversationIds;
-        List<User> tokenUser = new List<User>();
+        List<User> users = new List<User>();
         
         if(User.SObjectType.getDescribe().isAccessible() && Schema.SObjectType.User.fields.SlackID__c.isAccessible() &&
             Schema.SObjectType.User.fields.Id.isAccessible()){
-
-                tokenUser = [SELECT Id,SlackID__c FROM User WHERE SlackID__c != NULL WITH SECURITY_ENFORCED];         
+                users = [SELECT Id, SlackID__c 
+                            FROM User 
+                            WHERE SlackID__c != NULL 
+                            WITH SECURITY_ENFORCED];         
         }
 
-        List<SlackMessageObjects.SlackUser> allUsers = SlackUtils.mapSlackIdsToAllUsers(tokenUser); 
+        Map<String, User> usersMap = new Map<String, User>();
+        for(User user : users) {
+            usersMap.put(user.SlackID__c, user);
+        }
 
-        SlackMessageObjects.UserConversationPair conversationsPair = new  SlackMessageObjects.UserConversationPair();
-        conversationsPair.conversationIds = convIds;
-        conversationsPair.userToken = token;
+        List<SlackMessageObjects.SlackUser> allUsers = SlackUtils.mapSlackIdsToAllUsers(users); 
     
-        List<SlackMessageObjects.FullConversation> slackConversationsToSave = SaveSlackMessageHandler.addMembersAndMessages(conversationsPair, allUsers,conversationsPair.userToken);
+        List<SlackMessageObjects.FullConversation> slackConversationsToSave = SaveSlackMessageHandler.addMembersAndMessages(conversationsIds, usersMap, token);
         
         if (slackConversationsToSave.size() > 0 && !errorLogs.isEmpty()) {
             if (slackConversationsToSave[0].errorLogs == null) {
@@ -30,15 +32,21 @@ public with sharing class SlackService {
         SaveSlackMessageHandler.scheduleSaveConversations(slackConversationsToSave);
         //check if there's a next cursor then call saveAllSlackConversations
         
-        if(nextCursor!=null){
+        if(nextCursor != null) {
             SaveSlackMessageScheduler savingScheduler = new SaveSlackMessageScheduler(nextCursor);
-            Datetime time1 = Datetime.now().addMinutes(1);
-            String cron1 = '' + time1.second() + ' ' + time1.minute() + ' ' + time1.hour() + ' ' + time1.day() + ' ' + time1.month() + ' ? 2022';
-            System.schedule('Saving Slack Messages Trigger ' + time1.getTime(), cron1, savingScheduler);
+            Datetime dateDT = Datetime.now().addMinutes(1);
+            String cron = dateDT.format('ss mm HH dd MM ? yyyy');
+            System.schedule('Saving Slack Messages Trigger ' + dateDT.getTime(), cron, savingScheduler);
         }
     }
 
     public static String getSlackToken() {
-        return [SELECT UserId__c, Token__c FROM Token_Custom_Metadata__mdt LIMIT 1].Token__c;
+        return [SELECT UserId__c, Token__c 
+                FROM Token_Custom_Metadata__mdt 
+                LIMIT 1].Token__c;
+    }
+
+    public static String getSlackBotToken() {
+        return [SELECT Bot_Token__c FROM Token_Custom_Metadata__mdt LIMIT 1].Bot_Token__c;
     }
 }

@@ -5,6 +5,7 @@ public with sharing class SlackMessageObjects {
         public Boolean isEdited;
         public String editedTs;
         public String slackUserId;
+        public String salesforceUserId;
     }
 
     public class FullConversation{
@@ -21,15 +22,29 @@ public with sharing class SlackMessageObjects {
         public String email;
     }
 
+    public class Channel {
+        public String id;
+        public String name;
+        public Integer num_members;
+        public Boolean is_im;
+        public Boolean is_channel;
+        public Boolean is_group;
+    }
+
     public class SendMessageResponse {
         public boolean ok;
         public String ts;
         public String error;
+    }
 
+    public class GetConversationResponse {
+        public boolean ok;
+        public String nextCursor;
+        public List<Channel> channels;
+        public String error;
     }
 
     public class UserConversationPair{
-        public String userToken;
         public String[] conversationIds;
         public String nextCursor;
     }
