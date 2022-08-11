@@ -1,0 +1,28 @@
+<template>
+    <lightning-card  title="">
+        <div class="main">
+            <template if:true={showChat}>
+                <section role="log" class="slds-chat">
+                    <ul class="slds-chat-list">
+
+                        <template for:each={chat.messages} for:item="msg">
+       
+                            <template if:true={msg.isOwner}>
+                                <c-outbound-messages key={msg.Id} msg-datetime={msg.messageDateTime} name={msg.messageOwner.Name} messagebody={msg.messageBody}>
+                                    
+                                </c-outbound-messages>
+                            </template>
+
+                            <template if:false={msg.isOwner}>
+                                <c-inbound-messages key={msg.Id} msg-datetime={msg.messageDateTime} name={msg.messageOwner.Name} messagebody={msg.messageBody}>
+                                    
+                                </c-inbound-messages>
+                            </template>
+      
+                        </template>
+                    </ul>
+                </section>
+            </template>
+        </div>
+    </lightning-card>
+</template>
