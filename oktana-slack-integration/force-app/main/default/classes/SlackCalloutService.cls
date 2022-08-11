@@ -2,7 +2,7 @@ public with sharing class SlackCalloutService {
 
     private static final String API_URL = 'https://slack.com/api/';
 
-    public static SlackMessageObjects.GetConversationResponse getConversations(String token, String nextCursor, Integer limitRecords){
+    public static SlackMessageObjects.GetConversationsResponse getConversations(String token, String nextCursor, Integer limitRecords){
         String limitStr = String.valueOf(limitRecords);
         String nextCursorStr = (nextCursor != null) ? '&cursor=' + nextCursor : '';
         String endpoint = API_URL  + 'conversations.list?types=public_channel,private_channel,im&limit='+ limitStr + nextCursorStr ;
@@ -16,81 +16,26 @@ public with sharing class SlackCalloutService {
         request.setHeader('Content-Type','application/x-www-form-urlencoded');
         HttpResponse response = http.send(request);
         
-        SlackMessageObjects.GetConversationResponse customResponse = new SlackMessageObjects.GetConversationResponse();
+        SlackMessageObjects.GetConversationsResponse customResponse = new SlackMessageObjects.GetConversationsResponse();
         
-        //We need to set nextcursor for recursive structure of code
         Map<String, Object> result = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
         Boolean ok = (Boolean) result.get('ok');
-        
+        customResponse.ok = ok;
         if(!ok){
-            customResponse.ok = ok;
             customResponse.error = (String) result.get('error');
             return customResponse;
         }
 
         if(result.containsKey('response_metadata')) {
-            Map<String, Object> responseMetadata = (Map<String, Object>) JSON.deserializeUntyped(
-                JSON.serialize(result.get('response_metadata')));
-            customResponse.nextCursor = (String) result.get('next_cursor');
+            Map<String, Object> responseMetadata = (Map<String, Object>)JSON.deserializeUntyped(System.JSON.serialize(result.get('response_metadata')));
+            customResponse.nextCursor = (String)responseMetadata.get('next_cursor');
         }
 
         String channelsJson = JSON.serialize(result.get('channels'));
         customResponse.channels = (List<SlackMessageObjects.Channel>) JSON.deserialize(
             channelsJson, List<SlackMessageObjects.Channel>.class);        
-        
+
         return customResponse;
-    }
-
-    public static SlackMessageObjects.UserConversationPair getConversationPairs(String token, String nextCursor, Integer limitRecords){
-        SlackMessageObjects.UserConversationPair pair = new SlackMessageObjects.UserConversationPair();
-        //fetch conversations from API
-        String limitStr = String.valueOf(limitRecords);
-        String nextCursorStr = (nextCursor != null) ? '&cursor=' + nextCursor : '';
-        String endpoint = API_URL  + 'conversations.list?types=public_channel,private_channel,im&limit='+ limitStr + nextCursorStr ;
-        Http http = new Http();
-        HttpRequest request = new HttpRequest();
-        request.setEndpoint(endpoint);
-        request.setMethod('POST');
-        request.setHeader('Authorization', 'Bearer ' + token);
-        request.setHeader('Accept', 'application/x-www-form-urlencoded');
-        request.setHeader('Content-Type','application/x-www-form-urlencoded');
-        HttpResponse response = http.send(request);
-        //We need to set nextcursor for recursive structure of code
-        Map<String, Object> result = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
-        
-        if(result.containsKey('error')){
-            return null;
-        }
-        
-        pair.conversationIds = getConversationIds(result);
-        pair.nextCursor = getNextCursor(result);
-
-        return pair;
-    }
-
-    @TestVisible
-    private static String getNextCursor(Map<String, Object> conversationResults){
-        if(conversationResults.containsKey('response_metadata')){
-            Map<String, Object> responseMetadata = (Map<String, Object>)JSON.deserializeUntyped(System.JSON.serialize(conversationResults.get('response_metadata')));
-            if(responseMetadata.containsKey('next_cursor')){
-                if( (String)responseMetadata.get('next_cursor') !='' && (String)responseMetadata.get('next_cursor') !=' '){
-                    return (String)responseMetadata.get('next_cursor');                        
-                }
-            }
-        }
-        return null;
-    }
-
-    @TestVisible
-    private static String[] getConversationIds(Map<String, Object> conversationResults){
-        String[] conversationids = new String[]{};
-        List<Object> channels = (List<Object> )JSON.deserializeUntyped(System.JSON.serialize(conversationResults.get('channels')));
-
-        for(Object channelObject : channels){
-            Map<String, Object> channelItem = (Map<String, Object>)System.JSON.deserializeUntyped(System.JSON.serialize(channelObject));                    
-            conversationids.add((String)channelItem.get('id'));
-        }
-        return conversationids;
     }
 
     public static List<SlackMessageObjects.SlackMessage> getMessages(String token, String conversationId, Map<String, User> usersMap){
@@ -165,7 +110,7 @@ public with sharing class SlackCalloutService {
         if(!ok){
             return null;
         }
-        
+
         List<String> membersIds = (List<String> )JSON.deserialize(JSON.serialize(result.get('members')), List<String>.class);
         for(String memberId : membersIds){
             if(usersMap.containsKey(memberId)) {
@@ -190,9 +135,10 @@ public with sharing class SlackCalloutService {
         return memberWrapper;
     }
 
-    public static List<SlackMessageObjects.SlackUser> getSlackUsers(String token, String workspaceId){
 
-        List<SlackMessageObjects.SlackUser> slackUsers = new List<SlackMessageObjects.SlackUser>();
+    public static SlackMessageObjects.GetUsersResponse getSlackUsers(String token, String workspaceId){
+
+        SlackMessageObjects.GetUsersResponse getUsersResponse = new SlackMessageObjects.GetUsersResponse();
 
         String endpoint = API_URL + 'users.list?team_id=' + workspaceId;
         Http http = new Http();
@@ -204,28 +150,35 @@ public with sharing class SlackCalloutService {
         request.setHeader('Content-Type','application/x-www-form-urlencoded');
         HttpResponse response = http.send(request);
 
-        Map<String, Object> usersResults = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
+        Map<String, Object> result = (Map<String, Object>)JSON.deserializeUntyped(response.getBody());
+        Boolean ok = (Boolean) result.get('ok');
+        getUsersResponse.ok = ok;
 
-        if(usersResults.containsKey('error')){
-            return null;
-        }
-            
-        List<Object> usersListObject = (List<Object> )JSON.deserializeUntyped(System.JSON.serialize(usersResults.get('members')));
-        for(Object userObj : usersListObject){
-                Map<String, Object> userMap = (Map<String, Object>)System.JSON.deserializeUntyped(System.JSON.serialize(userObj));
-                String userId = (String)userMap.get('id');
-                Map<String, Object> userProfileMap = (Map<String, Object>)System.JSON.deserializeUntyped(System.JSON.serialize(userMap.get('profile')));
-                String email = (String)userProfileMap.get('email');
-                SlackMessageObjects.SlackUser slackUser = new SlackMessageObjects.SlackUser();
-                slackUser.slackUserID = userId;
-                slackUser.email = email;
-                slackUsers.add(slackUser);
+        if(!ok){
+            getUsersResponse.error = (String) result.get('error');
+            return getUsersResponse;
         }
 
-        return slackUsers;
+        getUsersResponse.users = new List<SlackMessageObjects.User>();
+        
+        List<Object> members = (List<Object>)JSON.deserializeUntyped(JSON.serialize(result.get('members')));
+        
+        for(Object member : members) {
+            Map<String, Object> memberMap = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize(member));
+            SlackMessageObjects.User user = new SlackMessageObjects.User();
+            user.id =  (String) memberMap.get('id');
+            user.name = (String) memberMap.get('name');
+            user.realName = (String) memberMap.get('real_name');
+
+            Map<String, Object> profileMap = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize(memberMap.get('profile')));
+            user.email = (String) profileMap.get('email');
+
+            getUsersResponse.users.add(user);
+        }
+
+        
+        return getUsersResponse;
     }
-
-    
 
     public static SlackMessageObjects.SendMessageResponse sendMessage(String token, String channelId, String text) {
         String endpoint = API_URL + 'chat.postMessage';

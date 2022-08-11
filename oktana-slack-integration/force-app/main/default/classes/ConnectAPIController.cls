@@ -9,7 +9,6 @@ public with sharing class ConnectAPIController {
     public static ConnectApi.FeedElement postFeedDirectMessage(String communityId, String messageText, List<String> recipients, Boolean changeOwnerCrossOrg) {
         // Define the FeedItemInput object to pass to postFeedElement
         ConnectApi.FeedItemInput feedItemInput = new ConnectApi.FeedItemInput();
-        
         ConnectApi.TextSegmentInput textSegmentInput = new ConnectApi.TextSegmentInput();
         textSegmentInput.text = messageText;
 

@@ -10,16 +10,31 @@ public with sharing class SlackMessageObjects {
 
     public class FullConversation{
         public String conversationId;
+        public String conversationName;
+        public Boolean isDMConversation;
         public List<SlackMessage> messages;
         public List<String> members;
         public List<Debug_Log__c> errorLogs;
     }
-
+    
     public class SlackUser{
         public String slackUserId;
         //public String token;
         public String salesforceUserId;
         public String email;
+    }
+
+    public class User {
+        public String id;
+        public String name;
+        public String realName;
+        public String email;
+    }
+
+    public class GetUsersResponse {
+        public boolean ok;
+        public String error;
+        public List<User> users;
     }
 
     public class Channel {
@@ -37,16 +52,11 @@ public with sharing class SlackMessageObjects {
         public String error;
     }
 
-    public class GetConversationResponse {
+    public class GetConversationsResponse {
         public boolean ok;
         public String nextCursor;
         public List<Channel> channels;
         public String error;
-    }
-
-    public class UserConversationPair{
-        public String[] conversationIds;
-        public String nextCursor;
     }
 
     public class MemberErrorWrapper{

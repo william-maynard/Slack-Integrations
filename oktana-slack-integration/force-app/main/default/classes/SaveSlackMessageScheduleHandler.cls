@@ -1,4 +1,6 @@
 public with sharing class SaveSlackMessageScheduleHandler {
+    public class SlackSavingMessageException extends Exception {}
+
 
     @future(callout=true)
     public static void saveAllSlackConversations(String nextCursor){
@@ -13,15 +15,23 @@ public with sharing class SaveSlackMessageScheduleHandler {
         slackDebug1.Log_Body__c = String.valueOf(jobLimit);
         errorLogs.add(slackDebug1);
 
-        SlackMessageObjects.UserConversationPair userConversationPair = SlackCalloutService.getConversationPairs(token, nextCursor, jobLimit);
+        SlackMessageObjects.GetConversationsResponse conversationsResponse = SlackCalloutService.getConversations(token, nextCursor, jobLimit);
+        if(!conversationsResponse.ok) {
+            throw new SlackSavingMessageException('Error getting conversations. Error: ' + conversationsResponse.error);
+        }
+        System.debug('channels size ' + conversationsResponse.channels.size());
+        System.debug('nexcursor ');
+        System.debug(conversationsResponse.nextCursor);
+        System.debug(conversationsResponse.nextCursor.equals(''));
 
+        List<SlackMessageObjects.Channel> channels = conversationsResponse.channels;
         Debug_Log__c slackDebug2 = new Debug_Log__c();
         slackDebug2.Name = 'SaveSlackMessageScheduleHandler-saveAllSlackConversations-Line 17';
-        slackDebug2.Description__c = 'The amount of ' + userConversationPair.conversationIds.size() + ' conversations were fetched, and those are the following:';
-        slackDebug2.Log_Body__c = String.join(userConversationPair.conversationIds, ', ');
+        slackDebug2.Description__c = 'The amount of ' + channels.size() + ' conversations were fetched, and those are the following:';
+        slackDebug2.Log_Body__c = '';//String.join(userConversationPair.conversationIds, ', ');
         errorLogs.add(slackDebug2);
 
-        SlackService.getSlackConversationsInformationAndSave(userConversationPair.conversationIds, token, userConversationPair.nextCursor, errorLogs);
+        SlackService.getSlackConversationsInformationAndSave(channels, token, conversationsResponse.nextCursor, errorLogs);
 
     }
 }
