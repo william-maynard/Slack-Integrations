@@ -1,6 +1,6 @@
 public with sharing class SlackService {
-    
-    public static void getSlackConversationsInformationAndSave(List<String> conversationsIds, String token, String nextCursor, List<Debug_Log__c> errorLogs){ //next cursor conversationIds
+
+    public static void getSlackConversationsInformationAndSave(List<SlackMessageObjects.Channel> channels, String token, String nextCursor, List<Debug_Log__c> errorLogs) {
     
         List<User> users = new List<User>();
         
@@ -16,10 +16,8 @@ public with sharing class SlackService {
         for(User user : users) {
             usersMap.put(user.SlackID__c, user);
         }
-
         List<SlackMessageObjects.SlackUser> allUsers = SlackUtils.mapSlackIdsToAllUsers(users); 
-    
-        List<SlackMessageObjects.FullConversation> slackConversationsToSave = SaveSlackMessageHandler.addMembersAndMessages(conversationsIds, usersMap, token);
+        List<SlackMessageObjects.FullConversation> slackConversationsToSave = SaveSlackMessageHandler.addMembersAndMessages(channels, usersMap, token);
         
         if (slackConversationsToSave.size() > 0 && !errorLogs.isEmpty()) {
             if (slackConversationsToSave[0].errorLogs == null) {
@@ -30,9 +28,8 @@ public with sharing class SlackService {
         }
         
         SaveSlackMessageHandler.scheduleSaveConversations(slackConversationsToSave);
-        //check if there's a next cursor then call saveAllSlackConversations
         
-        if(nextCursor != null) {
+        if(nextCursor != null && !nextCursor.equals('')) {
             SaveSlackMessageScheduler savingScheduler = new SaveSlackMessageScheduler(nextCursor);
             Datetime dateDT = Datetime.now().addMinutes(1);
             String cron = dateDT.format('ss mm HH dd MM ? yyyy');

@@ -28,6 +28,8 @@ public class SaveSlackMessageScheduleQueueableTest {
         List<SlackMessageObjects.FullConversation> conversations = new List<SlackMessageObjects.FullConversation>();
         SlackMessageObjects.FullConversation testConversation = new SlackMessageObjects.FullConversation();
         testConversation.conversationId = 'C0ABC123';
+        testConversation.conversationName = 'TEST';
+        testConversation.isDMConversation = false;
         testConversation.messages = new List<SlackMessageObjects.SlackMessage>{msg};
         testConversation.members = new String[]{users[0].Id, users[1].Id};
         conversations.add(testConversation);

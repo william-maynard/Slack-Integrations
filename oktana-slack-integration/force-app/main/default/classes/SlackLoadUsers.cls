@@ -1,19 +1,23 @@
 public with sharing class SlackLoadUsers {
-    
+    public class SlackLoadUsersException extends Exception {}
+
     @Future(callout=true)
     public static void loadSlackUsers(){
 
-        //fetch tokens
-        String token = SlackService.getSlackToken();
+        if(!User.SObjectType.getDescribe().isUpdateable() 
+            && !Schema.SObjectType.User.fields.SlackID__c.isUpdateable()){
+            throw new SlackLoadUsersException('Insuficient permissions');
+        }
 
-        //fetch the slack id
+        String token = SlackService.getSlackToken();
         String workspaceID = getWorkspaceId();
 
-        //call the slack api with the token
-        List<SlackMessageObjects.SlackUser> slackUsers = SlackCalloutService.getSlackUsers(token,workspaceID);
+        SlackMessageObjects.GetUsersResponse response = SlackCalloutService.getSlackUsers(token, workspaceID);
+        if(!response.ok) {
+            throw new SlackLoadUsersException('Error getting users from slack. Error: ' + response.error);
+        }
 
-        //get the email and map with the users
-        mapAndUpdateSlackUsers(slackUsers);
+        mapAndUpdateSlackUsers(response.users);
     }
 
     public static String getWorkspaceId(){
@@ -25,41 +29,29 @@ public with sharing class SlackLoadUsers {
         return null;
     }
 
-    public static void mapAndUpdateSlackUsers(List<SlackMessageObjects.SlackUser> slackUsers){
+    public static void mapAndUpdateSlackUsers(List<SlackMessageObjects.User> users){
 
-        List<String> emailList = getEmailList(slackUsers);
+        Map<String, String> emailsIdsMap = getEmailsIdsMap(users);
 
-        List<User> foundUsers = [SELECT Id, email FROM User WHERE email in :emailList WITH SECURITY_ENFORCED];
-
-        for(User u : foundUsers){
-            u.SlackID__c = getSlackIdByEmail(slackUsers, u.Email);
+        List<User> sfUsers = [SELECT Id, Email 
+                                FROM User 
+                                WHERE Email IN :emailsIdsMap.keySet() 
+                                AND IsActive = true
+                                WITH SECURITY_ENFORCED];
+        for(User user : sfUsers){
+            user.SlackID__c = emailsIdsMap.get(user.Email);
         }
 
-        if(User.SObjectType.getDescribe().isUpdateable() && Schema.SObjectType.User.fields.SlackID__c.isUpdateable()){
-                update foundUsers;
-        }
+        update sfUsers;
         
     }
 
-    public static List<String> getEmailList(List<SlackMessageObjects.SlackUser> slackUsers){
+    public static Map<String, String> getEmailsIdsMap(List<SlackMessageObjects.User> users){
         
-        List<String> result = new List<String>();
-        for(SlackMessageObjects.SlackUser sUser : slackUsers){
-            result.add(sUser.email);
+        Map<String, String> result = new Map<String, String>();
+        for(SlackMessageObjects.User user : users){
+            result.put(user.email, user.id);
         }
-
         return result;
-    }
-
-    public static String getSlackIdByEmail(List<SlackMessageObjects.SlackUser> slackUsers, String email){
-
-        for(SlackMessageObjects.SlackUser sUser : slackUsers){
-            if(sUser.email == email){
-                return sUser.slackUserId;
-            }
-        }
-
-        return null;
-
     }
 }

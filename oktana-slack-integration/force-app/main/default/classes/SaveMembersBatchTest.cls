@@ -7,12 +7,12 @@ private with sharing class SaveMembersBatchTest {
         List<SlackMessageObjects.SlackMessage> messagesList = new List<SlackMessageObjects.SlackMessage>();
         Conversation__c slackConversation = new Conversation__c(Name = 'Test Conversation', Conversation_Id__c='0D58a00008VI39SCAT', 
                                                                 Slack_Conversation_Id__c='C03HBSQLV5H', Slack_Workspace_Id__c='T03HBSQKZEX',
-                                                                Message_Timestamps__c = 'oldts');
+                                                                Message_Timestamps__c = '1234452');
         insert slackConversation;
 
         test.startTest();
         // Get an User Id
-        String userId = createStandartUser();
+        String userId = createStandartUser(String.valueOf(Datetime.now().millisecond())+'@mail.com');
         List<String> recipients = new List<String>{userId};
         String feedText = 'feed test';
         String commentText = 'comment test';
@@ -21,12 +21,9 @@ private with sharing class SaveMembersBatchTest {
         // Fill SlackMessage List
         SlackMessageObjects.SlackMessage message = new SlackMessageObjects.SlackMessage();
         message.textMessage = 'test text1';
-        message.ts = 'nmts1';
+        message.ts = '12344521';
         message.slackUserId = 'testId1';
         messagesList.add(message);
-        
-		System.debug('feed id');
-        System.debug(feed.id);
         
         SaveSlackMessageQueueable testedClass = new SaveSlackMessageQueueable(messagesList, null, feed.Id, slackConversation);   
         system.enqueueJob(testedClass);
@@ -48,8 +45,8 @@ private with sharing class SaveMembersBatchTest {
         System.debug(fc);
     }
     
-    private static String createStandartUser() {
-        User[] users = [SELECT Id FROM User WHERE Username = :USER_EMAIL LIMIT 1];
+    private static String createStandartUser(String email) {
+        User[] users = [SELECT Id FROM User WHERE Username = :email LIMIT 1];
         
         if (users.size() > 0) {
             return users[0].Id;
@@ -58,9 +55,9 @@ private with sharing class SaveMembersBatchTest {
         Profile prof = [SELECT Id FROM Profile WHERE Name='Standard User' LIMIT 1];
         User user = new User(
             Alias 		 = 'testUser',
-            Email 		 = USER_EMAIL,
+            Email 		 = email,
             LastName 	 = 'LastName',
-            Username 	 = USER_EMAIL,
+            Username 	 = email,
             LocaleSidKey = 'en_US',
             ProfileId    = prof.Id,
             EmailEncodingKey  = 'UTF-8',
