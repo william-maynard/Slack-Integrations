@@ -5,21 +5,25 @@ public with sharing class SlackCalloutServiceTest {
     static final Integer CONVERSATION_PAIR_LIST_SIZE = 40;
 
     @isTest 
-    static void getConversationPairsSucessTest() {
+    static void getConversationsSucessTest() {
         Test.startTest();
         Test.setMock(HttpCalloutMock.class, new SaveSlackMock());
-        SlackMessageObjects.UserConversationPair convPair = SlackCalloutService.getConversationPairs('token', 'nextcursor', CONVERSATION_PAIR_LIMIT_SIZE);
+        SlackMessageObjects.GetConversationsResponse conversations = SlackCalloutService.getConversations('token', 'nextcursor', CONVERSATION_PAIR_LIMIT_SIZE);
         Test.stopTest();
-        System.assertEquals(convPair.conversationIds.size(), CONVERSATION_PAIR_LIST_SIZE);
+        System.assert(conversations.ok);
+        System.assertEquals(CONVERSATION_PAIR_LIST_SIZE, conversations.channels.size(), 
+            'Expected conversations size is: ' + CONVERSATION_PAIR_LIST_SIZE + '. Actual: ' + conversations.channels.size());
     }
 
     @isTest 
-    static void getConversationPairsErrorTest() {
+    static void getConversationsErrorTest() {
         Test.startTest();
         Test.setMock(HttpCalloutMock.class, new SaveSlackMock('error_mock'));
-        SlackMessageObjects.UserConversationPair convPair = SlackCalloutService.getConversationPairs('error_mock', 'nextcursor', CONVERSATION_PAIR_LIMIT_SIZE);
+        SlackMessageObjects.GetConversationsResponse conversations = SlackCalloutService.getConversations('error_mock', 'nextcursor', CONVERSATION_PAIR_LIMIT_SIZE);
         Test.stopTest();
-        System.assertEquals(convPair, null);
+        System.assert(!conversations.ok);
+        System.assertEquals(null, conversations.channels, 
+            'Channels attribute should be null. Actual: ' + conversations.channels);
     }
 
     @IsTest 
@@ -75,41 +79,6 @@ public with sharing class SlackCalloutServiceTest {
     }
 
     @IsTest 
-    static void getNextCursorSuccessTest(){
-        HttpResponse resp = new HttpResponse();
-        resp.setStatusCode(200);
-        resp.setStatus('Success');
-        String testString = '{"response_metadata":{"next_cursor":"nextcursorvalue"}}';
-        resp.setBody(testString);
-
-        Map<String, Object> conversationResults = (Map<String, Object>)JSON.deserializeUntyped(resp.getBody());
-
-        Test.startTest();
-        String nc = SlackCalloutService.getNextCursor(conversationResults);
-        Test.stopTest();
-
-        System.assertEquals(nc, 'nextcursorvalue');
-    }
-
-    @IsTest 
-    static void getNextCursorErrorTest(){
-        HttpResponse resp = new HttpResponse();
-        resp.setStatusCode(200);
-        resp.setStatus('Success');
-        String testString = '{"error":true}';
-        resp.setBody(testString);
-
-        Map<String, Object> conversationResults = (Map<String, Object>)JSON.deserializeUntyped(resp.getBody());
-
-        Test.startTest();
-        String nc = SlackCalloutService.getNextCursor(conversationResults);
-        Test.stopTest();
-
-        System.assertEquals(nc, null);
-        
-    }
-
-    @IsTest 
     static void setMessagesTest(){
         HttpResponse resp = new HttpResponse();
         resp.setStatusCode(200);
@@ -148,23 +117,6 @@ public with sharing class SlackCalloutServiceTest {
 
         System.assertEquals(sm.size(), 2);
 
-    }
-
-    @IsTest 
-    static void getConversationIdsTest(){
-        HttpResponse resp = new HttpResponse();
-        resp.setStatusCode(200);
-        resp.setStatus('Success');
-        String testString = '{"channels":[{"id":"C1"},{"id":"C2"}]}';
-        resp.setBody(testString);
-
-        Map<String, Object> conversationResults = (Map<String, Object>)JSON.deserializeUntyped(resp.getBody());
-
-        Test.startTest();
-        String[] cids = SlackCalloutService.getConversationIds(conversationResults);
-        Test.stopTest();
-
-        System.assertEquals(cids.size(), 2);
     }
     
 }

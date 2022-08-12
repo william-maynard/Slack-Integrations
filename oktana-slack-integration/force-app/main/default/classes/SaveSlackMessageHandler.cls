@@ -2,27 +2,27 @@ public with sharing class SaveSlackMessageHandler {
     public class SlackSavingMessageException extends Exception {
 
     }
-    public static List<SlackMessageObjects.FullConversation> addMembersAndMessages(List<String> conversationsIds, 
+    public static List<SlackMessageObjects.FullConversation> addMembersAndMessages(List<SlackMessageObjects.Channel> channels, 
                                                                                 Map<String, User> usersMap, String userToken ){
         List<SlackMessageObjects.FullConversation> results = new List<SlackMessageObjects.FullConversation>();
             
-        for(String conversationId : conversationsIds) {
-            SlackMessageObjects.FullConversation conversationData = new SlackMessageObjects.FullConversation();
+        for(SlackMessageObjects.Channel channel : channels) {
+            SlackMessageObjects.FullConversation conversation = new SlackMessageObjects.FullConversation();
+            conversation.conversationId = channel.id;
+            conversation.conversationName = channel.name;
+            conversation.isDMConversation = channel.is_im;
+            conversation.errorLogs = new List<Debug_Log__c>();
 
-            conversationData.conversationId = conversationId;
-            conversationData.errorLogs = new List<Debug_Log__c>();
-
-            SlackMessageObjects.MemberErrorWrapper memberWrapper = SlackCalloutService.getConversationMembers(conversationId, usersMap, userToken);
-            conversationData.members = memberWrapper.members;
+            SlackMessageObjects.MemberErrorWrapper memberWrapper = SlackCalloutService.getConversationMembers(channel.id, usersMap, userToken);
+            conversation.members = memberWrapper.members;
             if(memberWrapper.errorLog != null) {
-                conversationData.errorLogs.add(memberWrapper.errorLog);
+                conversation.errorLogs.add(memberWrapper.errorLog);
             }
-            
 
-            if(conversationData.members.size() > 1) {
-                conversationData.messages = SlackCalloutService.getMessages(userToken, conversationId, usersMap);
-                if(conversationData.messages != null && conversationData.messages.size() > 0){
-                    results.add(conversationData);
+            if(conversation.members.size() > 1) {
+                conversation.messages = SlackCalloutService.getMessages(userToken, channel.id, usersMap);
+                if(conversation.messages != null && conversation.messages.size() > 0){
+                    results.add(conversation);
                 }      
             }
         }
@@ -59,7 +59,6 @@ public with sharing class SaveSlackMessageHandler {
         try {
             insert totalDebugLogs;
         } catch (Exception e) {
-            //throw new AuraHandledException('Error trying to insert debugs');
             system.debug('Error line 65');
             System.debug(e.getMessage());
         }
@@ -143,11 +142,17 @@ public with sharing class SaveSlackMessageHandler {
     //Method used in saveSlackConversation if conversation does not exist
     private static void conversationNoExist(Conversation__c conversation, SlackMessageObjects.FullConversation slackConversation, RecordType slackConversationRecordType, String workspaceID, String communityID){
         conversation = new Conversation__c();
+        conversation.Name = slackConversation.conversationName;
+        conversation.IsDirectMessage__c = slackConversation.isDMConversation;
         conversation.Slack_Conversation_Id__c = slackConversation.conversationId;
         conversation.Slack_Workspace_Id__c = workspaceID;
-        conversation.Members__c = String.join(slackConversation.members, '');
+        String members = String.join(slackConversation.members, '');
+        if(members.length() > 255) {
+            members = members.substring(0, 255);
+        }
+        conversation.Members__c = members;
         conversation.RecordTypeId = slackConversationRecordType.Id;
-        
+
         //process first message
         ConnectApi.FeedElement message = ConnectAPIController.postFeedDirectMessage(communityID, slackConversation.messages[0].textMessage, slackConversation.members, false);
         conversation.Message_timestamps__c = slackConversation.messages[0].ts;
@@ -158,12 +163,9 @@ public with sharing class SaveSlackMessageHandler {
         try {
             insert conversation;
         } catch (Exception e) {        
-           // throw new  AuraHandledException('Error trying to insert the conversation')
             System.debug('Error line 164');
             System.debug(e.getMessage());
         }
-
-        //process rest of messages
 
         Integer i = slackConversation.messages.size();
         if(i > ChatterConstant.SLACK_MESSAGES_LIMIT){

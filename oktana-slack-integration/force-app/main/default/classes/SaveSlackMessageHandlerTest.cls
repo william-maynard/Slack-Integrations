@@ -9,14 +9,20 @@ public with sharing class SaveSlackMessageHandlerTest {
         usersMap.put('ABC123', new User(Id = '0058c00000CHYHuAAP', SlackID__c = 'ABC123'));
         usersMap.put('ABC456', new User(Id = '0058c00000CHYHqWAA', SlackID__c = 'ABC456'));
 
+        String token = 'xopABC123';
 
-        String token = '{"tokens":[{"slackUserId":"U03A8GA3BGC","accessToken":"xoxp-3331607868951-3348554113556-3579730000528-0bab6fe771a836e8fb95f3de4ecb004e","workspace":"SavingPlayground"}]}';
-        SlackMessageObjects.UserConversationPair conversationsPair = new  SlackMessageObjects.UserConversationPair();
+        List<SlackMessageObjects.Channel> channels = new List<SlackMessageObjects.Channel>();        
+        for(Integer i = 1; i <= 2; i++) {
+            SlackMessageObjects.Channel channel = new SlackMessageObjects.Channel();
+            channel.id = 'C0ABC10' + i;
+            channel.name = 'Channel ' + i;
+            channel.is_im = false;
+            channels.add(channel);
+        }
 
-        String[] conversationsIds = new String[]{'1','2'};        
-
-        List<SlackMessageObjects.FullConversation> slackConversationsToSave = SaveSlackMessageHandler.addMembersAndMessages(conversationsIds, usersMap, token);
-        System.assertEquals(slackConversationsToSave.size(), 2, 'the size is not equals to the conversationIds');
+        List<SlackMessageObjects.FullConversation> slackConversationsToSave = SaveSlackMessageHandler.addMembersAndMessages(channels, usersMap, token);
+        System.assertEquals(channels.size(), slackConversationsToSave.size(), 
+            'Expected conversations to save ' + channels.size() + '. Actual: ' + slackConversationsToSave.size());
         Test.stopTest();
     }
 
@@ -48,6 +54,8 @@ public with sharing class SaveSlackMessageHandlerTest {
         List<SlackMessageObjects.FullConversation> conversations = new List<SlackMessageObjects.FullConversation>();
         SlackMessageObjects.FullConversation testConversation = new SlackMessageObjects.FullConversation();
         testConversation.conversationId = 'C0ABC123';
+        testConversation.isDMConversation = false;
+        testConversation.conversationName = 'TEST';
         testConversation.messages = new List<SlackMessageObjects.SlackMessage>{msg};
         testConversation.members = new String[]{users[0].Id, users[1].Id};
         conversations.add(testConversation);
@@ -66,15 +74,21 @@ public with sharing class SaveSlackMessageHandlerTest {
         
         Account account = new Account(Name = 'Test Account');
         insert account;
-
-        Contact contact1 = createContact('Test', 'Contact 1', account.Id, null, false);
-        Contact contact2 = createContact('Test', 'Contact 2', account.Id, null, false);
-        List<Contact> contacts = new List<Contact>{contact1, contact2};
+        List<Contact> contacts = new List<Contact>();
+        for(Integer i = 1; i <= 15; i++) {
+            Contact contact = createContact('TestSave', 'Contact ' + i, account.Id, null, false);
+            contact.Email = i + contact.Email;
+            contacts.add(contact);
+        }
         insert contacts;
 
-        User user1 = createCommunityUser(contacts[0], 'ABC123', false);
-        User user2 = createCommunityUser(contacts[1], 'ABC456', false);
-        List<User> users = new List<User>{user1, user2};
+        List<User> users = new List<User>();
+        Integer index = 1;
+        for(Contact contact : contacts) {
+            User user = createCommunityUser(contact, 'ABC12' + index, false);
+            users.add(user);
+            index++;
+        }
         insert users;
 
         List<SlackMessageObjects.SlackMessage> messages = new List<SlackMessageObjects.SlackMessage>();
@@ -90,7 +104,7 @@ public with sharing class SaveSlackMessageHandlerTest {
             messages.add(msg);
         }
 
-        for(Integer i = 55; i <= 110; i++){
+        for(Integer i = 56; i <= 110; i++){
             SlackMessageObjects.SlackMessage msg = new SlackMessageObjects.SlackMessage();
             msg.textMessage = 'Text Msg ' + i;
             msg.ts = String.valueOf(i);
@@ -105,11 +119,16 @@ public with sharing class SaveSlackMessageHandlerTest {
         List<SlackMessageObjects.FullConversation> conversations = new List<SlackMessageObjects.FullConversation>();
         SlackMessageObjects.FullConversation testConversation = new SlackMessageObjects.FullConversation();
         testConversation.conversationId = 'C0ABC123';
+        testConversation.isDMConversation = false;
+        testConversation.conversationName = 'TEST';
         testConversation.messages = messages;
-        testConversation.members = new String[]{users[0].Id, users[1].Id};
+        testConversation.members = new List<String>();
+        for(User user : users) {
+            testConversation.members.add(user.Id);
+        }
 
         conversations.add(testConversation);
-        
+
         Test.startTest();      
         	SaveSlackMessageHandler.saveSlackConversations(conversations);    	
         Test.stopTest();
@@ -118,8 +137,10 @@ public with sharing class SaveSlackMessageHandlerTest {
             SELECT Id, Conversation_Id__c, Members__c
             FROM Conversation__c
             WHERE Slack_Conversation_Id__c = :testConversation.conversationId];
+        String expectedMembers = String.join(testConversation.members, '').substring(0, 255);
+
         System.assert(result.size() > 0, 'There should be 1 conversation saved');
-        System.assertEquals(users[0].Id + '' + users[1].Id, result[0].Members__c, 
+        System.assertEquals(expectedMembers, result[0].Members__c, 
             'Members field should be populated with users ids');
 
         Integer msgResult = [SELECT COUNT() 

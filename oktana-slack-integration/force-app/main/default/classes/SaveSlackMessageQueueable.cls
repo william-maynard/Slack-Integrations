@@ -19,19 +19,31 @@ public with sharing class SaveSlackMessageQueueable implements Queueable {
         newLog.Log_Body__c = slackConversation.Slack_Conversation_Id__c;
         insert newLog;
         
-        String text = '';
+        String msgText = '';
+        String msgUser = '';
+        String msgDateTime = '';
         for(SlackMessageObjects.SlackMessage message : this.messages){
-            text = (message.salesforceUserId == null ? '@unknown' : '@'+message.salesforceUserId) + ' ' + message.textMessage;
+            msgDateTime = getMessageDateTime(message.ts);
+            msgUser = getMessageUser(message.salesforceUserId);
+            msgText = msgUser + ' ' + msgDateTime + ' ' + message.textMessage;
             if( isNewTimestamp(message.ts) ){
-                ConnectAPIController.updateFeedDirectMessage(this.communityID, this.feedItemID, text);
+                ConnectAPIController.updateFeedDirectMessage(this.communityID, this.feedItemID, msgText);
                 slackConversation.Message_Timestamps__c = SlackUtils.getNewMessageTimestampField(slackConversation.Message_timestamps__c, message.ts);
             }else if( isEditedAndNewTimestamp(message) ){
-                ConnectAPIController.updateFeedDirectMessage(this.communityID, this.feedItemID, text);
+                ConnectAPIController.updateFeedDirectMessage(this.communityID, this.feedItemID, msgText);
                 slackConversation.Message_Timestamps__c = SlackUtils.getNewMessageTimestampField(slackConversation.Message_timestamps__c, message.editedTs);
             }
         }
         update slackConversation;
 
+    }
+    private String getMessageUser(String sfUserId) {
+        return (sfUserId == null ? '@unknown' : '@' + sfUserId);
+    }
+
+    private String getMessageDateTime(String tsString) {
+        Long tsLong = Long.valueOf(tsString.substringBefore('.')) * 1000L;
+        return String.valueOf(Datetime.newInstance(tsLong));
     }
 
     private Boolean isNewTimestamp(String timestamp) {
