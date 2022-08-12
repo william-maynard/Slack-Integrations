@@ -1,0 +1,21 @@
+<template>
+    <!-- <c-chat-lookup-component onselectedrecordevent = {handleSelectedRecordEvent}>
+    </c-chat-lookup-component> -->
+    <lightning-card title="Slack Chat">
+        <div class="main">
+            <lightning-combobox name="conversations" label="Conversations" value={selectedConversation}
+                placeholder="Select Conversation" options={conversations} onchange={handleChange}>
+            </lightning-combobox>
+       
+
+        <template if:true={nullMessageData}>
+            <!-- INSERT NO DATA ILLUSTRATION LWC -->
+            <c-empty-data-landing></c-empty-data-landing>
+        </template>
+        <template if:false={nullMessageData}>
+            <!-- INSERT MESSAGE VIEWER LWC -->
+            <c-slack-chat record-id={selectedConversation}></c-slack-chat>
+        </template>
+    </div>
+    </lightning-card>
+</template>
