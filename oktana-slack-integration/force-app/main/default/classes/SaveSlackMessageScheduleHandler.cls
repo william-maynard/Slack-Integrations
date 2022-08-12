@@ -19,10 +19,6 @@ public with sharing class SaveSlackMessageScheduleHandler {
         if(!conversationsResponse.ok) {
             throw new SlackSavingMessageException('Error getting conversations. Error: ' + conversationsResponse.error);
         }
-        System.debug('channels size ' + conversationsResponse.channels.size());
-        System.debug('nexcursor ');
-        System.debug(conversationsResponse.nextCursor);
-        System.debug(conversationsResponse.nextCursor.equals(''));
 
         List<SlackMessageObjects.Channel> channels = conversationsResponse.channels;
         Debug_Log__c slackDebug2 = new Debug_Log__c();

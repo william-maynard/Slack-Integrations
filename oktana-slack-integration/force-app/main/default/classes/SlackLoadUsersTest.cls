@@ -1,12 +1,11 @@
 @isTest
 public with sharing class SlackLoadUsersTest {
 
-    private static final String USER_EMAIL = 'standarUser@testorg.com';
+    private static final String USER_EMAIL = 'standaruser@testorg.com';
 
     private static List<User> createStandardUser(Integer amount) {
         
         List<User> usersToInsert = new List<User>();
-        String userName = 'standarUser@testorg.com';
         Profile prof = [SELECT Id FROM Profile WHERE Name='Standard User' LIMIT 1];
 
         for(Integer i = 0; i < amount; i++){
@@ -67,54 +66,6 @@ public with sharing class SlackLoadUsersTest {
         Test.stopTest();
         
         System.assertEquals((workspaceId != ''), true); 
-
-    }
-
-    @isTest
-    public static void testMapAndUpdateSlackUsers(){
-
-        Test.startTest();
-
-        createStandardUser(1);
-        List<SlackMessageObjects.SlackUser> slackUsers = generateSlackUsers();
-        SlackLoadUsers.mapAndUpdateSlackUsers(slackUsers);
-        User updatedUser = [SELECT Id, email,SlackID__c FROM User WHERE email = :USER_EMAIL LIMIT 1];
-
-        Test.stopTest();
-
-        System.assertEquals('U1234', updatedUser.SlackID__c);
-
-    }
-
-    @isTest
-    public static void testGetEmailList(){
-
-        Test.startTest();
-        List<SlackMessageObjects.SlackUser> slackUsers = generateSlackUsers();
-
-        List<String> emails = SlackLoadUsers.getEmailList(slackUsers);
-        Test.stopTest();
-
-        List<String> expected = new List<String>();
-        expected.add('standarUser@testorg.com');
-        expected.add('standarUser@testorg.com');
-        expected.add('standarUser@testorg.com');
-
-        System.assertEquals(expected, emails);
-    }
-
-    @isTest
-    public static void testgetSlackIdByEmail(){
-
-        Test.startTest();
-
-        List<SlackMessageObjects.SlackUser> slackUsers = generateSlackUsers();
-        String email = USER_EMAIL;
-        String slackID = SlackLoadUsers.getSlackIdByEmail(slackUsers,email);
-
-        Test.stopTest();
-
-        System.assertEquals('U1234', slackID);
 
     }
 

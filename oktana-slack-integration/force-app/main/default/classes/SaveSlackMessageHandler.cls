@@ -147,7 +147,7 @@ public with sharing class SaveSlackMessageHandler {
         conversation.Slack_Conversation_Id__c = slackConversation.conversationId;
         conversation.Slack_Workspace_Id__c = workspaceID;
         String members = String.join(slackConversation.members, '');
-        if(members > 255) {
+        if(members.length() > 255) {
             members = members.substring(0, 255);
         }
         conversation.Members__c = members;

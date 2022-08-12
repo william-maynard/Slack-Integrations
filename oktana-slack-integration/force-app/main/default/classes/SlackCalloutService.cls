@@ -60,11 +60,12 @@ public with sharing class SlackCalloutService {
     }
 
     @TestVisible
-    private static List<SlackMessageObjects.SlackMessage> setMessages(List<Object> messagesListObject, Map<String, User> usersMap){
+    private static List<SlackMessageObjects.SlackMessage> setMessages(List<Object> messagesObject, Map<String, User> usersMap){
         List<SlackMessageObjects.SlackMessage> messages = new List<SlackMessageObjects.SlackMessage>();
 
-        for(Object messageObj : messagesListObject){
-            Map<String, Object> messageItem = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize(messageObj));
+        for(Integer i = (messagesObject.size() - 1); i >= 0; i--) {
+            Map<String, Object> messageItem = (Map<String, Object>)JSON.deserializeUntyped(JSON.serialize(messagesObject.get(i)));
+
             SlackMessageObjects.SlackMessage parsedMessage =  new SlackMessageObjects.SlackMessage();
             if(messageItem.get('type') != null && (String)messageItem.get('type') == 'message' && messageItem.get('subtype') == null){
                 if(messageItem.get('edited') != null){
@@ -83,7 +84,7 @@ public with sharing class SlackCalloutService {
                     messages.add(parsedMessage);
                 }
             }
-        }      
+        }
         return messages;    
     }
 

@@ -1,4 +1,6 @@
 public with sharing class OktanaBirthdayService {
+    public class OktanaBirthdayServiceException extends Exception {}
+
     public enum Type {BIRTHDAY, OKTANA_BIRTHDAY}
     @TestVisible
     private static Map<Type,List<User>> getUsers(){
@@ -13,24 +15,28 @@ public with sharing class OktanaBirthdayService {
         
         List<User> birthdays = new List<User>();
         List<User> oktanaBirthdays = new List<User>();
-        
+        Set<String> coummunitySlacksIds = new Set<String>();
         // community user
         for (User user : [SELECT Id, ContactId, SlackID__c 
                             FROM User 
                             WHERE ContactId = :contactMap.keySet() 
+                            AND IsActive = true
                             AND SlackID__c != null
                             LIMIT 9999]) {
+            coummunitySlacksIds.add(user.SlackID__c);
             if (contactMap.get(user.ContactId).ThisYearBirthday__c == Date.today()) {
            		birthdays.add(user);
             } else {
                 oktanaBirthdays.add(user);
             }
         }
-        
+
         // standard user
         for (User user : [SELECT Id, okty_rrhh__ContactId__c, SlackID__c 
                             FROM User 
                             WHERE okty_rrhh__ContactId__c = :contactMap.keySet() 
+                            AND SlackID__c NOT IN :coummunitySlacksIds
+                            AND IsActive = true
                             AND SlackID__c != null
                             LIMIT 9999]) {
             if (contactMap.get(user.okty_rrhh__ContactId__c).ThisYearBirthday__c == Date.today()) {
@@ -77,19 +83,29 @@ public with sharing class OktanaBirthdayService {
         SlackWorkspace__c  currentWorkspace = SlackWorkspace__c.getValues('CurrentWorkspace');
         Map<Type, List<User>> userMap = getUsers();
         String message = '';
-        
+        String error = '';
         if (userMap.get(Type.BIRTHDAY).size() > 0) {
             message = getMessage(Type.BIRTHDAY, userMap.get(Type.BIRTHDAY));
             // preppend mention to the channel
-            message = '<#' + currentWorkspace.channelGeneralId__c + '>' + message;
-            SlackCalloutService.sendMessage(token, currentWorkspace.channelGeneralId__c, message);
+            message = '<#' + currentWorkspace.channelGeneralId__c + '> \n' + message;
+            SlackMessageObjects.SendMessageResponse responseBirthday = SlackCalloutService.sendMessage(token, currentWorkspace.channelGeneralId__c, message);
+            if (!responseBirthday.ok) {
+                error = ' Birthday Error: ' + responseBirthday;
+            }
         }
         
         if (userMap.get(Type.OKTANA_BIRTHDAY).size() > 0) {
             message = getMessage(Type.OKTANA_BIRTHDAY, userMap.get(Type.OKTANA_BIRTHDAY));
             // preppend mention to the channel
-            message = '<#' + currentWorkspace.channelGeneralId__c + '>' + message;
-            SlackCalloutService.sendMessage(token, currentWorkspace.channelGeneralId__c, message);
+            message = '<#' + currentWorkspace.channelGeneralId__c + '> \n' + message;
+            SlackMessageObjects.SendMessageResponse responseOktBirthday = SlackCalloutService.sendMessage(token, currentWorkspace.channelGeneralId__c, message);
+            if (!responseOktBirthday.ok){
+                error = ' Oktana Birthday Error: ' + responseOktBirthday;
+            }
+        }
+
+        if(!error.equals('')) {
+            throw new  OktanaBirthdayServiceException('Error sending message. Error ' + error);
         }
     }
 

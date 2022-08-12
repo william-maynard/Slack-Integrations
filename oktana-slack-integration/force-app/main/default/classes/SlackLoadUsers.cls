@@ -13,7 +13,6 @@ public with sharing class SlackLoadUsers {
         String workspaceID = getWorkspaceId();
 
         SlackMessageObjects.GetUsersResponse response = SlackCalloutService.getSlackUsers(token, workspaceID);
-        
         if(!response.ok) {
             throw new SlackLoadUsersException('Error getting users from slack. Error: ' + response.error);
         }
@@ -39,7 +38,6 @@ public with sharing class SlackLoadUsers {
                                 WHERE Email IN :emailsIdsMap.keySet() 
                                 AND IsActive = true
                                 WITH SECURITY_ENFORCED];
-
         for(User user : sfUsers){
             user.SlackID__c = emailsIdsMap.get(user.Email);
         }
@@ -54,7 +52,6 @@ public with sharing class SlackLoadUsers {
         for(SlackMessageObjects.User user : users){
             result.put(user.email, user.id);
         }
-
         return result;
     }
 }

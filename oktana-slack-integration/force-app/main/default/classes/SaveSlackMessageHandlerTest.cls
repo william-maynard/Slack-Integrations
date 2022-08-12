@@ -74,15 +74,21 @@ public with sharing class SaveSlackMessageHandlerTest {
         
         Account account = new Account(Name = 'Test Account');
         insert account;
-
-        Contact contact1 = createContact('Test', 'Contact 1', account.Id, null, false);
-        Contact contact2 = createContact('Test', 'Contact 2', account.Id, null, false);
-        List<Contact> contacts = new List<Contact>{contact1, contact2};
+        List<Contact> contacts = new List<Contact>();
+        for(Integer i = 1; i <= 15; i++) {
+            Contact contact = createContact('TestSave', 'Contact ' + i, account.Id, null, false);
+            contact.Email = i + contact.Email;
+            contacts.add(contact);
+        }
         insert contacts;
 
-        User user1 = createCommunityUser(contacts[0], 'ABC123', false);
-        User user2 = createCommunityUser(contacts[1], 'ABC456', false);
-        List<User> users = new List<User>{user1, user2};
+        List<User> users = new List<User>();
+        Integer index = 1;
+        for(Contact contact : contacts) {
+            User user = createCommunityUser(contact, 'ABC12' + index, false);
+            users.add(user);
+            index++;
+        }
         insert users;
 
         List<SlackMessageObjects.SlackMessage> messages = new List<SlackMessageObjects.SlackMessage>();
@@ -116,7 +122,10 @@ public with sharing class SaveSlackMessageHandlerTest {
         testConversation.isDMConversation = false;
         testConversation.conversationName = 'TEST';
         testConversation.messages = messages;
-        testConversation.members = new String[]{users[0].Id, users[1].Id};
+        testConversation.members = new List<String>();
+        for(User user : users) {
+            testConversation.members.add(user.Id);
+        }
 
         conversations.add(testConversation);
 
@@ -128,8 +137,10 @@ public with sharing class SaveSlackMessageHandlerTest {
             SELECT Id, Conversation_Id__c, Members__c
             FROM Conversation__c
             WHERE Slack_Conversation_Id__c = :testConversation.conversationId];
+        String expectedMembers = String.join(testConversation.members, '').substring(0, 255);
+
         System.assert(result.size() > 0, 'There should be 1 conversation saved');
-        System.assertEquals(users[0].Id + '' + users[1].Id, result[0].Members__c, 
+        System.assertEquals(expectedMembers, result[0].Members__c, 
             'Members field should be populated with users ids');
 
         Integer msgResult = [SELECT COUNT() 
