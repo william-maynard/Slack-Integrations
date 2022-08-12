@@ -4,14 +4,12 @@ public with sharing class SlackChatController {
     @AuraEnabled(cacheable=true)
     public static List<Conversation> getConversations() {
         
-        //Get Current User Conversations
-        String conversationQuery = 'SELECT Name, Conversation_Id__c, Members__c '
-                                    + 'FROM Conversation__c '
-                                    + 'WHERE IsDirectMessage__c = true AND Members__c LIKE \'%' + UserInfo.getUserId() + '%\' '
-                                    + 'LIMIT 10000';
+        //Helper inner class
+        SecureSOQL soql = new SecureSOQL();
 
-        Map<ID, Conversation__c> mapConversations = new Map<Id, Conversation__c>((List<Conversation__c>)Database.query(conversationQuery));
-
+        //Get Current User Conversations     
+        Map<ID, Conversation__c> mapConversations = soql.getConversations(UserInfo.getUserId());
+        
         //Get Conversation Members
         Set<String> memberIds = new Set<String>();
         for(Conversation__c conv : mapConversations.values()) {
@@ -23,10 +21,7 @@ public with sharing class SlackChatController {
         }
 
         //Get Users Data
-        Map<ID, User> mapUsers = new Map<ID, User>([    SELECT Name,
-                                                            SmallPhotoURL
-                                                        FROM User
-                                                        WHERE Id IN :memberIds]);
+        Map<ID, User> mapUsers = soql.getUsersData(memberIds);
         
         //Create Consversations Picklist Options
         List<Conversation> conversations = new List<Conversation>();
@@ -47,6 +42,7 @@ public with sharing class SlackChatController {
 
     @AuraEnabled(cacheable=true)
     public static Chat getChat(String conversationID) {
+        SecureSOQL soql = new SecureSOQL();
         Chat chat = new Chat();
         List<ChatMessage> chatMessages = new List<ChatMessage>();
 
@@ -66,16 +62,10 @@ public with sharing class SlackChatController {
         }
 
         //Get Users Data
-        Map<ID, User> mapUsers = new Map<ID, User>([    SELECT Name,
-                                                            SmallPhotoURL
-                                                        FROM User
-                                                        WHERE Id IN :memberIds]);
+        Map<ID, User> mapUsers = soql.getUsersData(memberIds);
 
         //Get Feed Conversations based on FeedItem
-        Map<ID, FeedComment> feedComments = new Map<ID, FeedComment>([  SELECT CommentBody 
-                                                                        FROM FeedComment 
-                                                                        WHERE FeedItemId = :conversationID
-                                                                        LIMIT 10000 ]);
+        Map<ID, FeedComment> feedComments = soql.getFeedCommentData(conversationID);
             
         //Get Chat Messages
         for(FeedComment feedComment : feedComments.values()) {
@@ -138,5 +128,32 @@ public with sharing class SlackChatController {
 			messageBody = pMessageBody;
 			messageDateTime = pMessageDateTime;
 		}
+    }
+
+    private without sharing class SecureSOQL {
+        
+        public Map<Id, Conversation__c> getConversations(String userId) {
+            String conversationQuery = 'SELECT Name, Conversation_Id__c, Members__c '
+                                    + 'FROM Conversation__c '
+                                    + 'WHERE IsDirectMessage__c = true AND Members__c LIKE \'%' + userId + '%\' '
+                                    + 'LIMIT 10000';
+
+            return new Map<Id, Conversation__c>((List<Conversation__c>)Database.query(conversationQuery));
+        }
+        
+        public Map<ID, User> getUsersData(Set<String> recordIds) {
+            return new Map<ID, User>([   SELECT Name,
+                                            SmallPhotoURL
+                                        FROM User
+                                        WHERE Id IN :recordIds]);
+        }
+
+        public Map<ID, FeedComment> getFeedCommentData(String conversationID) {
+            
+            return new Map<ID, FeedComment>([  SELECT CommentBody 
+                                                FROM FeedComment 
+                                                WHERE FeedItemId = :conversationID
+                                                LIMIT 10000 ]);
+        }
     }
 }

@@ -32,7 +32,6 @@ export default class SlackChat extends LightningElement {
                 }  
             }
             this.showChat = true;
-            console.log(JSON.parse(JSON.stringify(this.chat)));
         })
         .catch(error =>{
             this.errorMsg = error;

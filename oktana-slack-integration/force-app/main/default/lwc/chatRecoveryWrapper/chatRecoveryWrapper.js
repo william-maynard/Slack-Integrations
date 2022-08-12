@@ -21,6 +21,7 @@ export default class ChatRecoveryWrapper extends LightningElement {
 
     handleChange(event){
         this.selectedConversation = event.detail.value;
+        console.log(this.selectedConversation);
         this.nullMessageData = this.selectedConversation != '' ? false:true;
     }
 }
