@@ -47,10 +47,8 @@ public with sharing class SlackChatController {
         List<ChatMessage> chatMessages = new List<ChatMessage>();
 
         //Get Conversation Data
-        Map<ID, Conversation__c> mapConversations = new Map<Id, Conversation__c>([  SELECT Name, Conversation_Id__c, Members__c 
-                                                                                    FROM Conversation__c 
-                                                                                    WHERE Conversation_Id__c = :conversationID ]);
-        
+        Map<ID, Conversation__c> mapConversations = soql.getConversationsByFeedItem(conversationID);
+
         //Get Conversation Members
         Set<String> memberIds = new Set<String>();
         for(Conversation__c conv : mapConversations.values()) {
@@ -78,7 +76,8 @@ public with sharing class SlackChatController {
                 feedComment.Id,
                 mapUsers.get(userId),
                 comment,
-                commentDate
+                commentDate,
+                mapUsers.get(userId).Name
             ));
         }                                                            
 
@@ -122,11 +121,13 @@ public with sharing class SlackChatController {
         @AuraEnabled public User messageOwner;
 		@AuraEnabled public String messageBody;
 		@AuraEnabled public String messageDateTime;
-        public ChatMessage(String pId, User pMessageOwner, String pMessageBody, String pMessageDateTime) {
+        @AuraEnabled public String ownerName;
+        public ChatMessage(String pId, User pMessageOwner, String pMessageBody, String pMessageDateTime, String pOwnerName) {
 			Id = pId;
             messageOwner = pMessageOwner;
 			messageBody = pMessageBody;
 			messageDateTime = pMessageDateTime;
+            ownerName = pOwnerName;
 		}
     }
 
@@ -139,6 +140,10 @@ public with sharing class SlackChatController {
                                     + 'LIMIT 10000';
 
             return new Map<Id, Conversation__c>((List<Conversation__c>)Database.query(conversationQuery));
+        }
+
+        public Map<Id, Conversation__c> getConversationsByFeedItem(String feedId) {
+            return new Map<Id, Conversation__c>([SELECT Name, Conversation_Id__c, Members__c FROM Conversation__c WHERE Conversation_Id__c = :feedId LIMIT 10000]);
         }
         
         public Map<ID, User> getUsersData(Set<String> recordIds) {
