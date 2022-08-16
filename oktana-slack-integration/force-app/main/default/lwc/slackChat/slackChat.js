@@ -20,6 +20,7 @@ export default class SlackChat extends LightningElement {
         getChat({conversationID : this.recordId})
         .then(result =>{           
             this.chat = JSON.parse(JSON.stringify(result));
+
             for (let i = 0; i < this.chat.messages.length; i++) {
                 const element = this.chat.messages[i];
 
