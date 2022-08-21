@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>isException__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>This differentiates checkin logs from exception logs. Standard checkin logs should be deleted after 24hours and exception logs should be kept until resolved.</description>
+    <externalId>false</externalId>
+    <label>isException</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>
