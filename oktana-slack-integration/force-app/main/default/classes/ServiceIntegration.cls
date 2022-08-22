@@ -7,7 +7,7 @@ public abstract class ServiceIntegration {
         endpoint = Constants.SLACK_ENDPOINT + endpointPath;
         return endpoint;
     }
-    public virtual Map<String,String> setHeaderMap(){
+    public virtual Map<String,String> setHeader(){
         Map<String,String> header = new Map<String,String>();
         return header;
     }
