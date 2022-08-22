@@ -8,13 +8,13 @@ public abstract class ServiceIntegration {
     * @date 2022
     * @description Set a callout endpoint for Slack Integration.
     */
-    protected virtual String setEndpoint();
+    protected virtual String setEndpoint(){ return endpoint; }
     /** 
     * @author Oktana
     * @date 2022
     * @description Set Header map for HTTP callout.
     */
-    protected virtual Map<String,String> setHeader();
+    protected virtual Map<String,String> setHeader(){ return header; }
     /** 
     * @author Oktana
     * @date 2022
