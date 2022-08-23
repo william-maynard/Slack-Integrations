@@ -9,4 +9,5 @@ public class Constants {
     public static final String HTTP_GET = 'GET';
     public static final String HTTP_POST = 'POST';
     public static final String SLACK_ENDPOINT = 'https://slack.com/api/';
+    public static final Integer SPLIT_LIMIT = 98;
 }
