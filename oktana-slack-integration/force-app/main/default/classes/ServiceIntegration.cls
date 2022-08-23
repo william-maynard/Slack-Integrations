@@ -1,27 +1,21 @@
 public abstract class ServiceIntegration {
-    private HttpRequest request;
-    private HttpResponse response;
-    private String endpoint;
-    private Map<String,String> header;
+    protected HttpRequest request;
+    protected HttpResponse response;
+    protected String endpoint;
+    protected Map<String,String> header;
     /** 
     * @author Oktana
     * @date 2022
     * @description Set a callout endpoint for Slack Integration.
     * @params Recieves a string with the remaining endpoint path.
     */
-    public virtual String setSlackEndpoint(string endpointPath){
-        endpoint = Constants.SLACK_ENDPOINT + endpointPath;
-        return endpoint;
-    }
+    protected virtual String setEndpoint(String endpoint){return endpoint;}
     /** 
     * @author Oktana
     * @date 2022
     * @description Set Header map for HTTP callout.
     */
-    public virtual Map<String,String> setHeader(){
-        Map<String,String> header = new Map<String,String>();
-        return header;
-    }
+    protected virtual Map<String,String> setHeader(){return header;}
     /** 
     * @author Oktana
     * @date 2022

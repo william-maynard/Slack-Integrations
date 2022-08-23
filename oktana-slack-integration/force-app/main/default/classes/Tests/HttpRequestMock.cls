@@ -1,15 +1,22 @@
-public with sharing class SingleRequestMock implements HttpCalloutMock {
+@isTest
+public with sharing class HttpRequestMock implements HttpCalloutMock {
     protected Integer code;
     protected String status;
     protected String body;
     protected Map<String, String> responseHeaders = new Map<String, String>();
 
-    public SingleRequestMock(Integer code, String status, String body,
+    public HttpRequestMock(Integer code, String status, String body,
                                      Map<String, String> responseHeaders) {
         this.code = code;
         this.status = status;
         this.body = body;
         this.responseHeaders = responseHeaders;
+    }
+
+    public HttpRequestMock(Integer code, String status, String body) {
+        this.code = code;
+        this.status = status;
+        this.body = body;
     }
 
     public HTTPResponse respond(HTTPRequest req) {
