@@ -8,7 +8,7 @@ public abstract class ServiceIntegration {
     * @date 2022
     * @description Set a callout endpoint for Slack Integration.
     */
-    protected virtual String setEndpoint(){ return endpoint; }
+    protected virtual String setEndpoint(String endpoint){return endpoint;}
     /** 
     * @author Oktana
     * @date 2022
