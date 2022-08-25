@@ -24,7 +24,7 @@ public without sharing class ConvserationServiceAdapter implements IConversation
             connectMessage.feedId = ccm.feedItemId;
             connectMessage.recipients = ccm.members;
             for(SlackObjects.Messages message : ccm.messages){
-                connectMessage.messageBody = message;
+                connectMessage.messageBody = message.text;
                 chatMessages.add(connectMessage);
             }
         }
