@@ -34,16 +34,9 @@ public without sharing class ConvserationServiceAdapter implements IConversation
     @TestVisible
     private List<ConnectApiService.ChatMessage> buildMessages(Map<String, SlackObjects.ConversationChatMessages> conversationChatMessages){
         slackConversationIds = conversationChatMessages.keySet();
+        retrieveUserSet(slackConversationIds);
         for(String key : slackConversationIds){
             conversationMessages = conversationChatMessages.get(key);
-            totalMembers.addAll(conversationMessages.members);
-        }
-        slacktoSF = mapSlackIdToSFId(totalMembers);
-        for(String key : slackConversationIds){
-            conversationMessages = conversationChatMessages.get(key);
-            for(conversationMessages.members cm : conversationMessages.members){
-                conversationMessages.members = slacktoSF.get(cm);
-            }
             chatMessages.addAll(createChatMessage(conversationMessages));
         }
         return chatMessages;
@@ -57,12 +50,26 @@ public without sharing class ConvserationServiceAdapter implements IConversation
     @TestVisible
     private List<ConnectAPIService.ChatMessage> createChatMessage(SlackObjects.ConversationChatMessages conversation){
         for(SlackObjects.Messages message : conversation.messages){
-            connectMessage.recipients = conversation.members;
+            connectMessage.recipients.add(slacktoSF.get(message.userId));
             connectMessage.feedItem = conversation.feedItemId;
-            connectMessage.messageBody = slacktosf.get(message.UserID) + message.ts + message.text;
+            connectMessage.messageBody = slacktosf.get(message.userId) + message.ts + message.text;
             chatMessages.add(connectMessage);
         }
         return chatMessages;
+    }
+         /** 
+    * @author Oktana
+    * @date 2022
+    * @description takes all the sets of members from all conversations and adds to a set for mapping to SF Ids.
+    * @params Set of SlackConversationIds
+    */
+    @TestVisible
+    private void retrieveUserSet(Set<String> slackConversationIds){
+        for(String key : slackConversationIds){
+            conversationMessages = conversationChatMessages.get(key);
+            totalMembers.addAll(conversationMessages.members);
+        }
+        slacktoSF = mapSlackIdToSFId(totalMembers);
     }
      /** 
     * @author Oktana
