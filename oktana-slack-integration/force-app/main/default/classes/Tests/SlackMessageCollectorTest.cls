@@ -54,4 +54,15 @@ public with sharing class SlackMessageCollectorTest {
         }
 
     }
+
+    @isTest
+    public static void fireMessageEventTest(){
+
+        SlackMessageCollector smc = new SlackMessageCollector();
+        test.startTest();
+        Boolean fired = smc.fireMessageEvent();
+        test.stopTest();
+
+        System.assertEquals(fired,true);
+    }
 }

@@ -44,5 +44,24 @@ public with sharing class SlackMessageCollector {
         if(conversationList.isEmpty() ) throw new SlackMessageCollectorException('Recieved Empty conversation List');
     }
 
+    public void collect(){
+ 
+    }
+
+    //insert platform event
+    //this is only going to work if a platform event exists in the org with 
+    //API name SlackMessageSaved__e 
+    public Boolean fireMessageEvent(){
+       
+        SlackMessageSaved__e sms = new SlackMessageSaved__e();
+
+        //publish the event,
+        //result has the succes of the event published
+        Database.SaveResult result = EventBus.publish(sms);
+
+        return result.isSuccess();
+
+    }
+
 
 }
