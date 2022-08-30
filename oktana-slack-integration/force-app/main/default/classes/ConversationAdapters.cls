@@ -13,6 +13,7 @@ public without sharing class ConversationAdapters extends IConversationAdapter i
     public Set<String> selectConversationIds(){
         return conversationsMap.keySet();
     }
+    //Junior get conversation details (LastMessageID, SlackConversationId)
     public void setConversationFromSlack(List<SlackObjects.Chat> chats){
         getUserIdsFromSlackIds(getSlackIdsFromWrapper(chats));
         setMaps(setFullMessageBody(setUserIdtoWrapper(chats)));
