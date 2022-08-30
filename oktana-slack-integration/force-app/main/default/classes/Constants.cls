@@ -10,4 +10,5 @@ public class Constants {
     public static final String HTTP_POST = 'POST';
     public static final String SLACK_ENDPOINT = 'https://slack.com/api/';
     public static final Integer SPLIT_LIMIT = 98;
+    public static final String NETWORK_ID = okty_rrhh__CommunityUrl__c.getInstance().CommunityId__c;
 }

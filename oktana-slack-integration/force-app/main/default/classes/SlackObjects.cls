@@ -18,5 +18,27 @@ public with sharing class SlackObjects {
         public Boolean isChannel;
         public Boolean isGroup;
     }
-
+    public class ConversationDetails{
+        public String lastMessageId;
+        public String feedItemId;
+    }
+    public class ConversationChatMessages{
+        public Set<String> members;
+        public list<Message> messages;
+        public String feedItemId;
+    }
+    public class Message {
+        public String timestamp;
+        public String text;
+        public String userId;
+        public String type;
+    }
+    public class Chat{
+        public String slackConversationId;
+        public String feedItemId;
+        public Set<Id> sFUserId;
+        public String conversationName;
+        public boolean isDirectMessage;
+        public Message messageBody;
+    }
 }
