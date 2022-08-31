@@ -4,14 +4,8 @@ public class ConversationServiceTest {
     @isTest
     public static void givenConversationIdsWhenCallingConversationServiceDotGetSFConversationsIsSuccessfully() {
         
-        //TODO: Move this to TestFactory
-        Conversation__c conversation = new Conversation__c();
-        conversation.Slack_Conversation_Id__c = 'TEST_SLACK_ID';
-        conversation.Conversation_Id__c = UserInfo.getUserId();
-        insert conversation;
-
         Set<String> conversationIds = new Set<String>{'TEST_SLACK_ID'};
-        //END - TODO: Move this to TestFactory
+        TestDataFactory.createConversations(conversationIds);
 
         ConversationService cService = new ConversationService();
 
@@ -22,34 +16,15 @@ public class ConversationServiceTest {
         system.assertEquals(1, result.size(), 'It should return 1 conversation detail per conversation');
     }
 
-    @isTest
+    @isTest 
     public static void givenChatMessagesWhenCallingConversationServiceDotPostMessagesIsSuccessfully() {
         
         Integer numberNewMessages = 2;
         Integer numberNewComments = 1;
         
         List<SlackObjects.Chat> messages = new List<SlackObjects.Chat>();
-        
-        //TODO: Move this to TestFactory
-        for(Integer i = 0; i < numberNewMessages; i++) {
-            SlackObjects.Chat chat = new SlackObjects.Chat();
-            chat.sFUserId = new Set<Id>{UserInfo.getUserId()};
-            SlackObjects.Message message = new SlackObjects.Message();
-            message.text = 'Test Chat Message ' + i;
-            chat.messageBody = message;
-            messages.add(chat);
-        }
-
-        for(Integer i = 0; i < numberNewComments; i++) {
-            SlackObjects.Chat chat = new SlackObjects.Chat();
-            chat.sFUserId = new Set<Id>{UserInfo.getUserId()};
-            chat.feedItemId = UserInfo.getUserId();
-            SlackObjects.Message message = new SlackObjects.Message();
-            message.text = 'Test Chat Message ' + i;
-            chat.messageBody = message;
-            messages.add(chat);
-        }
-        //END - TODO: Move this to TestFactory
+        messages.addAll(TestDataFactory.createSlackChatMessages(numberNewMessages, false));
+        messages.addAll(TestDataFactory.createSlackChatMessages(numberNewComments, true));
         
         ConnectAPIIntegrationService ciService = new ConnectAPIIntegrationService();
         ciService.myPoster = new MockChatterPoster();
