@@ -36,7 +36,7 @@ public with sharing class SlackObjects {
     public class Chat{
         public String slackConversationId;
         public String feedItemId;
-        public Set<Id> sFUserId;
+        public Set<Id> SFUserId;
         public String conversationName;
         public boolean isDirectMessage;
         public Message messageBody;
