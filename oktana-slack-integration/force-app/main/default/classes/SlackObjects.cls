@@ -22,10 +22,9 @@ public with sharing class SlackObjects {
         public String lastMessageId;
         public String feedItemId;
     }
-    public class ConversationChatMessages{
+    public class AllMessages{
         public Set<String> members;
         public list<Message> messages;
-        public String feedItemId;
     }
     public class Message {
         public String timestamp;

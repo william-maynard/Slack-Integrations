@@ -1,4 +1,3 @@
-
 @isTest
 public without sharing class TestDataFactory {
     
@@ -62,7 +61,48 @@ public without sharing class TestDataFactory {
 
         return messages;
     }
-
+    public static Map<String, String> createConversationInfo(Integer numberOfMappings){
+        Map<String, String> infoMap = new Map<String, String>();
+        for( Integer i = 0; i < numberOfMappings; i++){
+            String a = 'key '+i;
+            String b = 'value '+i;
+            infoMap.put(a, b);
+        }
+        return infoMap;
+    }
+    public static List<SlackObjects.Conversation> createSlackConversationWrappers(integer numberOfConversations){
+        List<SlackObjects.Conversation> conversations = new List<SlackObjects.Conversation>();
+        for(Integer i = 0; i < numberOfConversations; i++){
+        	SlackObjects.Conversation conversation = new SlackObjects.Conversation();
+            conversation.id = 'id '+i;
+            conversation.name = 'name '+i;
+            conversation.isDirectMessage = true;
+            conversations.add(conversation);
+        }
+        return conversations;
+    }
+    public static Map<String, SlackObjects.AllMessages> createMapOfConversationIdToAllMessageWrapper(integer numberOfConversations, integer numberOfMessages){
+        Map<String, SlackObjects.AllMessages> returnMap = new Map<String, SlackObjects.AllMessages>();
+        for(Integer i = 0; i < numberOfConversations; i++){
+        	String conversationId = 'id '+i;
+            Set<String> members = new Set<String>();
+            List<SlackObjects.Message> mList = new List<SlackObjects.Message>();
+            SlackObjects.AllMessages am = new SlackObjects.AllMessages();
+            for(Integer j = 0; j < numberOfMessages; j++){
+                SlackObjects.Message m = new SlackObjects.Message();
+                m.text = 'text '+j;
+                m.timestamp = 'timestamp '+j;
+                m.type = 'type '+j;
+                m.userId = 'slackid';
+                mList.add(m);
+                members.add('slackid');
+            }
+            am.members = members;
+            am.messages = mList;
+            returnMap.put(conversationId, am);
+        }
+        return returnMap;
+    }
     @TestVisible()
     private static void createCustomIndexSetting() {
         UserIndex__c userIndex = new userIndex__c();
